@@ -38,7 +38,7 @@ var nexGui = {
             Helper functions
         ***********************************************************************/
         let makeBox = function(name, type, weight, parent) {
-            let el = find_client_layout_element(`box_${parent}`);
+            let el = client.find_client_layout_element(`box_${parent}`);
 
             let box = {
                 type: type,
@@ -56,7 +56,7 @@ var nexGui = {
         }
 
         let makeContainer = function(containers, box, new_weight = 0) {
-            let el = find_client_layout_element(`box_${box}`);
+            let el = client.find_client_layout_element(`box_${box}`);
             for(let e of containers) {
                 $(`<div id="container_${e}" data-display-element-id="container_${e}" class="tabs bordered element" style="width: 100%; height: 5%;">`).appendTo(`#box_${box}`);
                 client.display_tabs[`container_${e}`] = [];
@@ -99,10 +99,12 @@ var nexGui = {
         let box_2h1v2 = makeBox('2h1v2', 'vbox', 0.666, '2h1');
 
         // Moves the default map tap into our new container.
-        box_2h1v2.elements = [JSON.parse(JSON.stringify(find_client_layout_element('box_2').elements[0]))];
+        box_2h1v2.elements = [JSON.parse(JSON.stringify(client.find_client_layout_element('box_2').elements[0]))];
         $('#container_1').appendTo('#box_2h1v2').css('height', '100%');
 
-        find_client_layout_element('box_2').elements = [box_2h1, box_2h2, box_2h3, box_2h4];
+        box_2h1.elements = [box_2h1v1,box_2h1v2];
+
+        client.find_client_layout_element('box_2').elements = [box_2h1, box_2h2, box_2h3, box_2h4];
 
         /***********************************************************************
             Adds tabs to the 2 stack left of the map window
@@ -110,7 +112,7 @@ var nexGui = {
         makeContainer(['2h1v1a', '2h1v1b'], '2h1v1');
         var tab_2h1v1a = makeTab(tab_2h1v1a, ["2h1v1a", "2h1v1a", "2h1v1a", '', 'container_2h1v1a']);
         var tab_2h1v1b = makeTab(tab_2h1v1b, ["2h1v1b", "2h1v1b", "2h1v1b", '', 'container_2h1v1b']);
-        find_client_layout_element('box_2h1v1').elements.forEach(e=>e.weight=0.5)
+        client.find_client_layout_element('box_2h1v1').elements.forEach(e=>e.weight=0.5)
 
         /***********************************************************************
             Single long narrow pane
@@ -133,8 +135,8 @@ var nexGui = {
         var tab_2h4b = makeTab(tab_2h4b, ["2h4b", "2h4b", "2h4b", '', 'container_2h4b']);
         var tab_2h4c = makeTab(tab_2h4c, ["2h4c", "2h4c", "2h4c", '', 'container_2h4c']);
 
-        find_client_layout_element('box_2h3').elements.forEach(e=>e.weight=0.333)
-        find_client_layout_element('box_2h4').elements.forEach(e=>e.weight=0.333)
+        client.find_client_layout_element('box_2h3').elements.forEach(e=>e.weight=0.333)
+        client.ind_client_layout_element('box_2h4').elements.forEach(e=>e.weight=0.333)
         /***********************************************************************
             Creates the 4 stacked panels on the left side of the main screen.
             Box_5 with containers 5a, 5b, 5c. 5d
@@ -148,14 +150,14 @@ var nexGui = {
         var tab_5b = makeTab(tab_5b, ["5b", "5b", "5b", '', 'container_5b']);
         var tab_5c = makeTab(tab_5c, ["5c", "5c", "5c", '', 'container_5c']);
         var tab_5d = makeTab(tab_5d, ["5d", "5d", "5d", '', 'container_5d']);
-        find_client_layout_element('box_5').elements.forEach(e=>e.weight=0.25)
+        client.find_client_layout_element('box_5').elements.forEach(e=>e.weight=0.25)
         $('#box_5').insertBefore('#box_3')
 
         /***********************************************************************
             Adds the chat window to the top of the main panel
         ***********************************************************************/
         makeContainer(['3a'], '3', 0.3)
-        move_tab_to_existing_container("all_comm", "container_3a")
+        client.move_tab_to_existing_container("all_comm", "container_3a")
         $('#container_3a').insertBefore('#main_container')
         /***********************************************************************
             Footer bar changes
@@ -190,96 +192,7 @@ var nexGui = {
         /***********************************************************************
             Default Nexus function rewrites
         ***********************************************************************/
-        redraw_interface = function ()
-        {
-            console.log('redraw_interface called');
-            var orig_mobile = client.mobile;
-            // swap mobile mode as needed
-            if ($(window).width() > 1000)
-                client.mobile = 0;
-            else if ($(window).width() > 750)
-                client.mobile = 1;
-            else
-                client.mobile = 2;
-            if (client.real_mobile) client.mobile = 2;
-
-            // if the layout type changed, we need to redraw everything
-            if (client.mobile != orig_mobile) {
-                reset_ui(false);
-                return;
-            }
-
-            clear_scrolling();
-
-            do_layout();
-        //    $('#holder').html('');
-
-            client.apply_stylesheet();
-            client.mapper.handle_redraw();
-            draw_affdef_tab();
-            update_tab_captions();
-            update_output_windows();
-            client.fix_input_line_height(false);
-            relayout_status_bar();
-            relayout_gauges();
-            draw_bottom_buttons();
-            setup_scrolling();
-            record_floater_locations();
-            client.update_fonts();
-            client.update_tooltip_state();
-            client.setup_movement_compass();
-            //client.update_layout_for_mobile(); // nexGui: This function will override the height settings. nexGui not designed for mobile anyway so we comment out.
-            $('body').removeClass('reverted');
-            if (client.reverted) $('body').addClass('reverted');
-            if (GMCP.gauge_data) {
-                parse_gauges(GMCP.gauge_data);
-                if (client.game == 'Lusternia') parse_lusternia_wounds(GMCP.gauge_data);
-            }
-
-            // the resizable jQuery plug-in doesn't handle our DOM shenanigans very well, so we need to fix it
-            $('.ui-resizable').each(function() {
-                var i = $(this).resizable('instance');
-                i.element = $(this);
-                i.handles.s[0] = $(this).children('.ui-resizable-s')[0];
-            });
-        }
-
-        relayout_status_bar = function() {
-            console.log('relayout_status_bar called');
-            previous_status = undefined;
-
-            // for the small mobile layout, there is no status bar
-            if (client.mobile == 2) {
-                $('#container').css('height', '100%');
-                $('#push').css('height', '0');
-                $('#footer').hide();
-                return;
-            }
-            
-            return; // nexGui: We don't need to relayout the status bar.
-            
-            $('#container').css('height', '');
-            $('#push').css('height', '');
-            $('#footer').css('height', '').show();
-
-            var w = $('#footer').width() - 465 - (($('#vote').css('display') == 'block') ? $('#vote').width()+10 : 0);
-            $('#character_module_status').css('width', w);
-            var divs = $('#character_module_status > div');
-            // so the first div needs to reach exactly to the beginning of the output window (20% of total width)
-            var firstw = $('#footer').width() * 0.2 - $('#character_module_status').offset().left - 37 /*37 is padding*/;
-            var len = divs.length;
-            divs.css('display', '');
-            if (client.mobile) {
-                // remove the ping and gold ones for the mobile layout
-                divs.filter('#status-ping, #status-gold').css('display', 'none');
-                len -= 2;
-            }
-            var diff = 39 + firstw / (len - 2);
-            // spread divs out evenly; the target one takes two slots (=is twice as wide)
-            if (divs.length) divs.css('width', 'calc(' + 100 / len + '% - '+diff+'px)');
-            divs.filter('#status-target').css('width', 'calc(' + 2 * 100 / len + '% - '+diff+'px)');
-            divs.filter('#status-level').css('width', firstw+'px');
-        }
+        
         /***********************************************************************
             CSS Changes
         ***********************************************************************/
@@ -322,9 +235,9 @@ var nexGui = {
         $('#character_module_avatar').remove();
         $('#bottom_buttons').remove();
         $('#box_2').insertAfter('#box_3');
-        find_client_layout_element('box_5').weight=0.10;
-        find_client_layout_element('box_2').weight=0.40;
-        find_client_layout_element('box_3').weight=0.50;
+        client.find_client_layout_element('box_5').weight=0.10;
+        client.find_client_layout_element('box_2').weight=0.40;
+        client.find_client_layout_element('box_3').weight=0.50;
         /***********************************************************************
             Run update to fit all windows to new sizes
         ***********************************************************************/
@@ -337,9 +250,9 @@ var nexGui = {
         nexGui.timer.layout();
         nexGui.def.layout();
 
-        send_direct('pwho');
-        send_direct('enemies');
-        send_direct('allies');
+        client.send_direct('pwho');
+        client.send_direct('enemies');
+        client.send_direct('allies');
 
     },
     room: {
@@ -956,7 +869,7 @@ var nexGui = {
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTable);
             
             let toggleTable2 = $('<table></table>', {
-                id: 'pvpToggleTable',
+                id: 'pvpToggleTable2',
                 'font-size':'11px',
                 'text-align':'left',
                 //'table-layout':'fixed',
@@ -968,7 +881,7 @@ var nexGui = {
             
             let addOption = function(container, title, option, ref) {
                 let optionRow = $('<tr></tr>');
-                $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(title).appendTo(optionRow);
+                $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${nexGui.pvp.font_size}`}).text(title).appendTo(optionRow);
     
                 let lab = $('<label></label>', {
                     'class': 'nexswitch nexInput'
@@ -1014,11 +927,11 @@ var nexGui = {
     
             /////////////////////////////////////////////////////////////////////////////////////////
             // Populate the LEFT side column of the pane
-            toggleTable.appendTo('#pvpLeft');
-            prioritySelect.appendTo('#pvpLeft');
-            pvpPrioritySelectList.appendTo('#pvpLeft');
+            toggleTable.appendTo(pvpLeft);
+            prioritySelect.appendTo(pvpLeft);
+            pvpPrioritySelectList.appendTo(pvpLeft);
             
-            toggleTable2.appendTo('#pvpRight');
+            toggleTable2.appendTo(pvpRight);
         }
     },
 

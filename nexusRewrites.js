@@ -9,14 +9,14 @@ client.write_channel = function(command,message,talker) {
     if ($("#channel_" + command).length > 0)
     {
         try {
-            message = nexRoom.highlightNames(message);//nexGui
+            message = nexGui.room.highlightNames(message);//nexGui
             ow_Write("#channel_" + command, message)
             client.channel_new_indicator(command);
         } catch (e) { }
     }
 
     if ($("#channel_all").length > 0) {
-        message = nexRoom.highlightNames(message); //nexGui
+        message = nexGui.room.highlightNames(message); //nexGui
         ow_Write("#channel_all", `${client.getTimeNoMS()} ${message}`);
         client.channel_new_indicator('all');
     }
@@ -1009,4 +1009,95 @@ client.send_direct = function(input, no_expansion)
         ws_send(s + "\r\n");
     }
     last_send = new Date().getTime();
+}
+
+client.redraw_interface = function ()
+        {
+            console.log('redraw_interface called');
+            var orig_mobile = client.mobile;
+            // swap mobile mode as needed
+            if ($(window).width() > 1000)
+                client.mobile = 0;
+            else if ($(window).width() > 750)
+                client.mobile = 1;
+            else
+                client.mobile = 2;
+            if (client.real_mobile) client.mobile = 2;
+
+            // if the layout type changed, we need to redraw everything
+            if (client.mobile != orig_mobile) {
+                reset_ui(false);
+                return;
+            }
+
+            client.clear_scrolling();
+
+            client.do_layout();
+        //    $('#holder').html('');
+
+            client.apply_stylesheet();
+            client.mapper.handle_redraw();
+            client.draw_affdef_tab();
+            client.update_tab_captions();
+            client.update_output_windows();
+            client.fix_input_line_height(false);
+            client.relayout_status_bar();
+            client.relayout_gauges();
+            client.draw_bottom_buttons();
+            client.setup_scrolling();
+            client.record_floater_locations();
+            client.update_fonts();
+            client.update_tooltip_state();
+            client.setup_movement_compass();
+            //client.update_layout_for_mobile(); // nexGui: This function will override the height settings. nexGui not designed for mobile anyway so we comment out.
+            $('body').removeClass('reverted');
+            if (client.reverted) $('body').addClass('reverted');
+            if (GMCP.gauge_data) {
+                parse_gauges(GMCP.gauge_data);
+                if (client.game == 'Lusternia') client.parse_lusternia_wounds(GMCP.gauge_data);
+            }
+
+            // the resizable jQuery plug-in doesn't handle our DOM shenanigans very well, so we need to fix it
+            $('.ui-resizable').each(function() {
+                var i = $(this).resizable('instance');
+                i.element = $(this);
+                i.handles.s[0] = $(this).children('.ui-resizable-s')[0];
+            });
+}
+
+client.relayout_status_bar = function() {
+    console.log('relayout_status_bar called');
+    previous_status = undefined;
+
+    // for the small mobile layout, there is no status bar
+    if (client.mobile == 2) {
+        $('#container').css('height', '100%');
+        $('#push').css('height', '0');
+        $('#footer').hide();
+        return;
+    }
+    
+    return; // nexGui: We don't need to relayout the status bar.
+    
+    $('#container').css('height', '');
+    $('#push').css('height', '');
+    $('#footer').css('height', '').show();
+
+    var w = $('#footer').width() - 465 - (($('#vote').css('display') == 'block') ? $('#vote').width()+10 : 0);
+    $('#character_module_status').css('width', w);
+    var divs = $('#character_module_status > div');
+    // so the first div needs to reach exactly to the beginning of the output window (20% of total width)
+    var firstw = $('#footer').width() * 0.2 - $('#character_module_status').offset().left - 37 /*37 is padding*/;
+    var len = divs.length;
+    divs.css('display', '');
+    if (client.mobile) {
+        // remove the ping and gold ones for the mobile layout
+        divs.filter('#status-ping, #status-gold').css('display', 'none');
+        len -= 2;
+    }
+    var diff = 39 + firstw / (len - 2);
+    // spread divs out evenly; the target one takes two slots (=is twice as wide)
+    if (divs.length) divs.css('width', 'calc(' + 100 / len + '% - '+diff+'px)');
+    divs.filter('#status-target').css('width', 'calc(' + 2 * 100 / len + '% - '+diff+'px)');
+    divs.filter('#status-level').css('width', firstw+'px');
 }

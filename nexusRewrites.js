@@ -907,67 +907,6 @@ client.display_text_block = function(lines, selector = '#output_main') {
         ow_Write(selector, block);
 }
 
-// THIS FUNCTION NEEDS TO BE CALLED AGAIN IN ANOTHER PACKAGE OTHERWISE ERRORS OCCUR. WHO KNOWS WHY.
-client.generate_text_block = function(lines) {
-    let customPromptEnabled = nexSys.sys.settings.customPrompt;
-    let count = 0;
-
-    let timestamp;
-    if (client.show_timestamp_milliseconds === true)
-        timestamp = client.getTimeMS();
-    else
-        timestamp = client.getTimeNoMS();
-    let cl = "timestamp mono no_out";
-    timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
-
-    let res = '';
-
-    let counter = 0;
-    for (let i = 0; i < lines.length; ++i) {
-        let txt = lines[i].parsed_line;
-        let font = lines[i].monospace ? 'mono' : '';
-        let line = "<p class=\"" + font + "\">" + timestamp + (txt ? txt.formatted() : '') + "</p>";
-
-        if (lines[i].gag) continue;
-        //////// Moved because don't want gagged lines
-        if (logging && txt) append_to_log(line);
-
-        //if (lines[i].gag) continue;
-        counter++;
-        
-        // Added this snippet to allow print() to inject lines
-		if (lines[i].type == 'html') {
-        	line = "<div class=\"" + font + "\">" + timestamp + lines[i].line + "</div>";
-            txt = true;
-        }
-        
-        if (txt) {
-            count++;
-            res += line;
-        }
-        let pr = lines[i].parsed_prompt;
-        if (pr && (count > 0)) {   // no prompt if we gagged everything
-
-            //////// Added
-            if(customPromptEnabled) {
-                lines[i] = nexSys.prompt.getCustomPrompt();
-                pr = lines[i].parsed_prompt;
-            }
-            line = "<p class=\"prompt " + font + "\">" + timestamp + pr.formatted() + "</p>";
-            if (logging) append_to_log(line);
-            res += line;
-        }
-        
-        // empty line - include it if it's neither the first nor the last one
-        // using "counter" instead of "i" fixes problems where the empty line is included after channel markers and such
-        if ((!pr) && (!txt) && (counter > 1) && (i < lines.length - 1)) {
-            res += '<p>' + timestamp + '&nbsp;' + '</p>';
-        }
-    }
-    if (client.extra_break && res.length) res += "<br />";
-    return res;
-};
-
 // Rewriting the print method to interact with the generate_text_block. This will allow us to use print()
 // within a text block. Normally print() always displays before the entire text block regardless of which
 // line triggers it.

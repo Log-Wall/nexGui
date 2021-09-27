@@ -1,6 +1,7 @@
 'use strict'
 
 var nexGui = {
+    version: '0.0.5',
     inject(rule) {
         if (!$('#client_nexgui-rules').length) {
             $('body').append('<div id="client_nexgui-rules"></div>')
@@ -32,7 +33,6 @@ var nexGui = {
         this.inject('.nexGui_room-target   { outline: 1px solid red; }');
         
     },
-
     layout() {
         /***********************************************************************
             Helper functions
@@ -73,7 +73,7 @@ var nexGui = {
 
         let makeTab = function(tab, options) {
             tab = Object.create(Tab);
-            tab.init(options[0],options[1],options[2],'https://cdn.jsdelivr.net/gh/Log-Wall/nexMap/nexmap_hat.png',options[4]);
+            tab.init(options[0],options[1],options[2],'https://cdn.jsdelivr.net/gh/Log-Wall/nexMap/profile',options[4]);
             tab.activate();
             return tab;
         }
@@ -136,7 +136,7 @@ var nexGui = {
         var tab_2h4c = makeTab(tab_2h4c, ["2h4c", "2h4c", "2h4c", '', 'container_2h4c']);
 
         client.find_client_layout_element('box_2h3').elements.forEach(e=>e.weight=0.333)
-        client.ind_client_layout_element('box_2h4').elements.forEach(e=>e.weight=0.333)
+        client.find_client_layout_element('box_2h4').elements.forEach(e=>e.weight=0.333)
         /***********************************************************************
             Creates the 4 stacked panels on the left side of the main screen.
             Box_5 with containers 5a, 5b, 5c. 5d
@@ -250,10 +250,34 @@ var nexGui = {
         nexGui.timer.layout();
         nexGui.def.layout();
 
+        nexGui.generateStyle();
+
         client.send_direct('pwho');
         client.send_direct('enemies');
         client.send_direct('allies');
 
+    },
+    addOption(container, title, option) {
+        let optionRow = $('<tr></tr>');
+        $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).text(title).appendTo(optionRow);
+
+        let lab = $('<label></label>', {
+            'class': 'nexswitch nexInput'
+        });
+        $('<input></input>', {
+            type: "checkbox",
+            'class': 'nexbox nexInput'
+        })
+            .prop('checked', option)
+            .on('change', function () {
+            option = $(this).prop('checked');
+        })
+            .appendTo(lab);
+        $('<span></span>', {
+            'class': 'nexslider nexInput'
+        }).appendTo(lab);
+        $('<td></td>').append(lab).appendTo(optionRow);
+        optionRow.appendTo(container);
     },
     room: {
         displayID: true,

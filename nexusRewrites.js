@@ -1,3 +1,92 @@
+client.redraw_interface = function ()
+{
+    var orig_mobile = client.mobile;
+    // swap mobile mode as needed
+    if ($(window).width() > 1000)
+        client.mobile = 0;
+    else if ($(window).width() > 750)
+        client.mobile = 1;
+    else
+        client.mobile = 2;
+    if (client.real_mobile) client.mobile = 2;
+
+    // if the layout type changed, we need to redraw everything
+    if (client.mobile != orig_mobile) {
+        reset_ui(false);
+        return;
+    }
+
+    clear_scrolling();
+
+    do_layout();
+//    $('#holder').html('');
+
+    client.apply_stylesheet();
+    client.mapper.handle_redraw();
+    draw_affdef_tab();
+    update_tab_captions();
+    update_output_windows();
+    client.fix_input_line_height(false);
+    relayout_status_bar();
+    relayout_gauges();
+    draw_bottom_buttons();
+    setup_scrolling();
+    record_floater_locations();
+    client.update_fonts();
+    client.update_tooltip_state();
+    client.setup_movement_compass();
+    //client.update_layout_for_mobile(); // nexGui: This function will override the height settings. nexGui not designed for mobile anyway so we comment out.
+    $('body').removeClass('reverted');
+    if (client.reverted) $('body').addClass('reverted');
+    if (GMCP.gauge_data) {
+        parse_gauges(GMCP.gauge_data);
+        if (client.game == 'Lusternia') parse_lusternia_wounds(GMCP.gauge_data);
+    }
+
+    // the resizable jQuery plug-in doesn't handle our DOM shenanigans very well, so we need to fix it
+    $('.ui-resizable').each(function() {
+        var i = $(this).resizable('instance');
+        i.element = $(this);
+        i.handles.s[0] = $(this).children('.ui-resizable-s')[0];
+    });
+}
+
+client.relayout_status_bar = function() {
+    previous_status = undefined;
+
+    // for the small mobile layout, there is no status bar
+    if (client.mobile == 2) {
+        $('#container').css('height', '100%');
+        $('#push').css('height', '0');
+        $('#footer').hide();
+        return;
+    }
+	
+    return; // nexGui: We don't need to relayout the status bar.
+    
+    $('#container').css('height', '');
+    $('#push').css('height', '');
+    $('#footer').css('height', '').show();
+
+    var w = $('#footer').width() - 465 - (($('#vote').css('display') == 'block') ? $('#vote').width()+10 : 0);
+    $('#character_module_status').css('width', w);
+    var divs = $('#character_module_status > div');
+    // so the first div needs to reach exactly to the beginning of the output window (20% of total width)
+    var firstw = $('#footer').width() * 0.2 - $('#character_module_status').offset().left - 37 /*37 is padding*/;
+    var len = divs.length;
+    divs.css('display', '');
+    if (client.mobile) {
+        // remove the ping and gold ones for the mobile layout
+        divs.filter('#status-ping, #status-gold').css('display', 'none');
+        len -= 2;
+    }
+    var diff = 39 + firstw / (len - 2);
+    // spread divs out evenly; the target one takes two slots (=is twice as wide)
+    if (divs.length) divs.css('width', 'calc(' + 100 / len + '% - '+diff+'px)');
+    divs.filter('#status-target').css('width', 'calc(' + 2 * 100 / len + '% - '+diff+'px)');
+    divs.filter('#status-level').css('width', firstw+'px');
+}
+
 client.write_channel = function(command,message,talker) {
     // disabling these checks, as we want the text to be added even if the channel is hidden right now, as long as it exists
 //    if (!client.channels_enabled()) return;
@@ -21,6 +110,76 @@ client.write_channel = function(command,message,talker) {
         client.channel_new_indicator('all');
     }
 }
+
+client.display_text_block = function(lines, selector = '#output_main') {
+    var block = generate_text_block(lines);
+    update_text_completion(lines);
+    if (block.length)
+        ow_Write(selector, block);
+}
+
+client.generate_text_block = function(lines) {
+    let count = 0;
+
+    let timestamp;
+    if (client.show_timestamp_milliseconds === true)
+        timestamp = client.getTimeMS();
+    else
+        timestamp = client.getTimeNoMS();
+    let cl = "timestamp mono no_out";
+    timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
+
+    let res = '';
+
+    let counter = 0;
+    for (let i = 0; i < lines.length; ++i) {
+        let txt = lines[i].parsed_line;
+        let font = lines[i].monospace ? 'mono' : '';
+        let line = "<p class=\"" + font + "\">" + timestamp + (txt ? txt.formatted() : '') + "</p>";
+
+        if (lines[i].gag) continue;
+        //////// Moved because don't want gagged lines
+        if (logging && txt) append_to_log(line);
+
+        //if (lines[i].gag) continue;
+        counter++;
+        
+        // Added this snippet to allow print() to inject lines
+		if (lines[i].type == 'html') {
+        	line = `<div class="${font}" display="inline-block">${timestamp}${lines[i].line}</div>`;
+            txt = true;
+        }
+
+        if (txt) {
+            count++;
+            res += line;
+        }
+        
+        let pr = lines[i].parsed_prompt;
+        if (pr && (count > 0)) {   // no prompt if we gagged everything
+
+            //////// Added
+            if(nexSys?.sys?.settings?.customPrompt) {
+                pr = nexSys.prompt.getCustomPrompt();
+            } else {
+                pr = pr.formatted();
+            }
+            
+            line = "<div class=\"prompt " + font + "\">" + timestamp + pr + "</div>";
+            if (logging) append_to_log(line);
+            res += line;
+        }
+
+        // empty line - include it if it's neither the first nor the last one
+        // using "counter" instead of "i" fixes problems where the empty line is included after channel markers and such
+        if ((!pr) && (!txt) && (counter > 1) && (i < lines.length - 1)) {
+            res += '<p>' + timestamp + '&nbsp;' + '</p>';
+        }
+    }
+    if (client.extra_break && res.length) res += "<br />";
+
+    return res;
+};
 
 client.handle_GMCP = function(data)
 {
@@ -899,255 +1058,3 @@ client.handle_GMCP = function(data)
         if (gmcp_fire_event) client.handle_event('GMCP', gmcp_method, gmcp_event_param);
     }
 }
-
-client.display_text_block = function(lines, selector = '#output_main') {
-    var block = generate_text_block(lines);
-    update_text_completion(lines);
-    if (block.length)
-        ow_Write(selector, block);
-}
-
-// Rewriting the print method to interact with the generate_text_block. This will allow us to use print()
-// within a text block. Normally print() always displays before the entire text block regardless of which
-// line triggers it.
-// setting html = true will display in line with the text block. print('stuff', true)
-client.print = function(s, html = true)
-{
-    let inline = {
-            line: s,
-            type: html ? 'html' : ''
-        }
-    
-    if (client.current_block && html) {
-        
-        let idx = client.current_block.length;
-        if (client.current_line) idx = client.current_block.indexOf(client.current_line) + 1;
-        client.current_block.splice(idx, 0, inline);
-    } else {
-        client.display_text_block([inline], '#output_main');
-    }
-}
-
-client.send_direct = function(input, no_expansion)
-{
-    if (!input || typeof input == undefined)
-        return false;
-
-    var do_expansion = !no_expansion;
-
-    if (typeof input != "string")
-        input = input.toString();
-
-    client.command_counter++;
-    if (client.command_counter >= 200) {
-        if (client.command_counter == 200)
-            print('You seem to have sent more than 200 commands within a second. You probably have some runaway trigger or an endless alias loop - disabling commands for a while.', '#FF8080');
-        client.setup_command_counter();  // just in case -- had the interval disappear at one point
-        return;
-    }
-
-    var real_cmds = [];
-    if (do_expansion) {
-        var commands = [];
-        var split_regex = new RegExp(escapeRegExp(client.stack_delimiter), 'gm');
-        var parts = input.split(split_regex);
-
-        // Delimiter split
-        for (var i = 0; i < parts.length; ++i) {
-            var cmd = parts[i];
-            if (cmd == "") continue;
-            var cmds = [];
-            // Aliases
-            if (aliases_enabled)
-                cmds = handle_aliases(cmd);
-            else
-                cmds.push(cmd);
-
-            for (var j = 0; j < cmds.length; ++j)
-                commands.push(cmds[j]);
-        }
-
-        // Now process internal commands, expand variables and execute functions.
-        for (var i = 0; i < commands.length; ++i) {
-            var cmd = commands[i];
-
-            if (cmd.indexOf("@set") == 0)
-            {
-                var temp = cmd.split(/ /);
-                if (temp[1] != "" && temp[2] != "")
-                {
-                    if (client.set_variable(temp[1], temp[2]))
-                    {
-                        print("Set " + temp[1] + " to " + temp[2]);
-                        display_variables();
-                    }
-                    continue;
-                }
-            }
-
-            if (variables_enabled) cmd = handle_variables(cmd);
-
-            if (functions_enabled)
-            {
-                cmd = handle_functions(cmd);
-                if (!cmd) continue;
-            }
-
-            // This is a real command - add it to the queue
-            real_cmds.push(cmd);
-        }
-    } else
-        real_cmds.push(input);   // skip the cmds loop entirely if we don't expand anything
-
-    if (!real_cmds.length) return;
-    if (!ws) return;
-
-    for (var i = 0; i < real_cmds.length; ++i) {
-        var s = real_cmds[i];
-        if (client.echo_input)
-            print(`<span style='color:${client.color_inputecho}'>${s}</span>`, true); // nexSys: We rewrite this portion to work with our new print()
-        ws_send(s + "\r\n");
-    }
-    last_send = new Date().getTime();
-}
-
-client.redraw_interface = function ()
-        {
-            console.log('redraw_interface called');
-            var orig_mobile = client.mobile;
-            // swap mobile mode as needed
-            if ($(window).width() > 1000)
-                client.mobile = 0;
-            else if ($(window).width() > 750)
-                client.mobile = 1;
-            else
-                client.mobile = 2;
-            if (client.real_mobile) client.mobile = 2;
-
-            // if the layout type changed, we need to redraw everything
-            if (client.mobile != orig_mobile) {
-                reset_ui(false);
-                return;
-            }
-
-            client.clear_scrolling();
-
-            client.do_layout();
-        //    $('#holder').html('');
-
-            client.apply_stylesheet();
-            client.mapper.handle_redraw();
-            client.draw_affdef_tab();
-            client.update_tab_captions();
-            client.update_output_windows();
-            client.fix_input_line_height(false);
-            client.relayout_status_bar();
-            client.relayout_gauges();
-            client.draw_bottom_buttons();
-            client.setup_scrolling();
-            client.record_floater_locations();
-            client.update_fonts();
-            client.update_tooltip_state();
-            client.setup_movement_compass();
-            //client.update_layout_for_mobile(); // nexGui: This function will override the height settings. nexGui not designed for mobile anyway so we comment out.
-            $('body').removeClass('reverted');
-            if (client.reverted) $('body').addClass('reverted');
-            if (GMCP.gauge_data) {
-                parse_gauges(GMCP.gauge_data);
-                if (client.game == 'Lusternia') client.parse_lusternia_wounds(GMCP.gauge_data);
-            }
-
-            // the resizable jQuery plug-in doesn't handle our DOM shenanigans very well, so we need to fix it
-            $('.ui-resizable').each(function() {
-                var i = $(this).resizable('instance');
-                i.element = $(this);
-                i.handles.s[0] = $(this).children('.ui-resizable-s')[0];
-            });
-}
-
-client.relayout_status_bar = function() {
-    console.log('relayout_status_bar called');
-    previous_status = undefined;
-
-    // for the small mobile layout, there is no status bar
-    if (client.mobile == 2) {
-        $('#container').css('height', '100%');
-        $('#push').css('height', '0');
-        $('#footer').hide();
-        return;
-    }
-    
-    return; // nexGui: We don't need to relayout the status bar.
-    
-    $('#container').css('height', '');
-    $('#push').css('height', '');
-    $('#footer').css('height', '').show();
-
-    var w = $('#footer').width() - 465 - (($('#vote').css('display') == 'block') ? $('#vote').width()+10 : 0);
-    $('#character_module_status').css('width', w);
-    var divs = $('#character_module_status > div');
-    // so the first div needs to reach exactly to the beginning of the output window (20% of total width)
-    var firstw = $('#footer').width() * 0.2 - $('#character_module_status').offset().left - 37 /*37 is padding*/;
-    var len = divs.length;
-    divs.css('display', '');
-    if (client.mobile) {
-        // remove the ping and gold ones for the mobile layout
-        divs.filter('#status-ping, #status-gold').css('display', 'none');
-        len -= 2;
-    }
-    var diff = 39 + firstw / (len - 2);
-    // spread divs out evenly; the target one takes two slots (=is twice as wide)
-    if (divs.length) divs.css('width', 'calc(' + 100 / len + '% - '+diff+'px)');
-    divs.filter('#status-target').css('width', 'calc(' + 2 * 100 / len + '% - '+diff+'px)');
-    divs.filter('#status-level').css('width', firstw+'px');
-}
-
-client.generate_text_block = function(lines) {
-    var count = 0;
-
-    var timestamp;
-    if (client.show_timestamp_milliseconds === true)
-        timestamp = client.getTimeMS();
-    else
-        timestamp = client.getTimeNoMS();
-    var cl = "timestamp mono no_out";
-    timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
-
-    var res = '';
-
-    var counter = 0;
-    for (var i = 0; i < lines.length; ++i) {
-        var txt = lines[i].parsed_line;
-        var font = lines[i].monospace ? 'mono' : '';
-        var line = "<div class=\"" + font + "\">" + timestamp + (txt ? txt.formatted() : '') + "</div>";
-
-        // we want gagged lines to be logged, too
-        if (logging && txt) append_to_log(line);
-
-        if (lines[i].gag) continue;
-        counter++;
-
-        // Added this snippet to allow print() to inject lines
-		if (lines[i].type == 'html') {
-        	line = "<div class=\"" + font + "\">" + timestamp + lines[i].line + "</div>";
-            txt = true;
-        }
-
-        if (txt) {
-            count++;
-            res += line;
-        }
-        var pr = lines[i].parsed_prompt;
-        if (pr && (count > 0)) {   // no prompt if we gagged everything
-            res += "<div class=\"prompt " + font + "\">" + timestamp + pr.formatted() + "</div>";
-        }
-        // empty line - include it if it's neither the first nor the last one
-        // using "counter" instead of "i" fixes problems where the empty line is included after channel markers and such
-        if ((!pr) && (!txt) && (counter > 1) && (i < lines.length - 1)) {
-            res += '<div line>' + timestamp + '&nbsp;' + '</div>';
-        }
-    }
-    if (client.extra_break && res.length) res += "<br />";
-    return res;
-}
-        

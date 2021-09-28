@@ -13,6 +13,7 @@ var nexGui = {
         $('#client_nexgui-rules').append('<style>' + rule + '</style></div>')
     },
     generateStyle() {
+        $('#client_nexgui-rules').remove();
         //this.inject('.nexswitch {position: relative;display: inline-block;width: 38px;height: 21px;}');
         this.inject('.nexswitch {position: relative;display: inline-block;width: 26px;height: 16px;}');
         this.inject('.nexswitch input {opacity: 0;width: 0;height: 0;}');
@@ -38,6 +39,37 @@ var nexGui = {
 
         // Room target CSS
         this.inject('.nexGui_room-target   { outline: 1px solid red; }');
+
+        $('#user_input').css({
+            'width':'100%',
+            'border-radius':'0px',
+            'margin':'0 0 0 0'
+        });
+        $('#data_form').css('height', '100%')
+        $('#input').css({
+            'bottom':'2px',
+            'width':'100%'
+        });
+        $('.ui-tabs > .tab_content').css({
+            'border-radius':0,
+            'top':'-0.5px',
+            'height': 'calc(100% - 11px)'
+        });
+        $('.tab_container').css('height', '100%');
+        $('#tab_content_main_output').css({
+            'height':'calc(100% - 8px)',
+            'padding': '6px 6px 6px 6px'
+        });
+
+        $('.tab_nav').css({
+            position: 'absolute',
+            bottom: '5px',
+            right: '0'
+        });
+
+        $('.ui-tabs').css({padding:0});
+        $('#channel_all div').css('margin-bottom', '5px');
+        $('body').css('line-height', '18px');
         
     },
     addOption(container, title, option, handler = ()=>{}) {
@@ -222,38 +254,6 @@ var nexGui = {
         .insertBefore('#gauges');
 
         /***********************************************************************
-            CSS Changes
-         ***********************************************************************/
-        $('#user_input').css({
-            'width':'100%',
-            'border-radius':'0px',
-            'margin':'0 0 0 0'
-        });
-        $('#data_form').css('height', '100%')
-        $('#input').css({
-            'bottom':'2px',
-            'width':'100%'
-        });
-        $('.ui-tabs > .tab_content').css({
-            'border-radius':0,
-            'top':'-0.5px',
-            'height': 'calc(100% - 11px)'
-        });
-        $('.tab_container').css('height', '100%');
-        $('#tab_content_main_output').css({
-            'height':'calc(100% - 8px)',
-            'padding': '6px 6px 6px 6px'
-        });
-
-        $('.tab_nav').css({
-            position: 'absolute',
-            bottom: '5px',
-            right: '0'
-        });
-
-        $('.ui-tabs').css({padding:0});
-        $('#channel_all div').css('margin-bottom', '5px')
-        /***********************************************************************
             Stuff
          ***********************************************************************/
         display_tabs.disabled_central = ['bottom_buttons', 'avatar', 'gauges'];
@@ -317,7 +317,7 @@ var nexGui = {
             }
         },
         remove(item) {      
-            if (item?.attrib == "m" || item?.attrib == "mx" || item?.attrib == "mdt")
+            if (item?.attrib == "m" || item?.attrib == "mx")
                 this.npcs.remove(item);
             else
                 this.items.remove(item);
@@ -455,6 +455,10 @@ var nexGui = {
                 overflow:'auto',
                 height:'100%'
             });
+            $(this.items.location).css({
+                overflow:'auto',
+                height:'100%'
+            });
             $(this.players.location).css({
                 display:'flex',
                 'flex-wrap':'wrap'
@@ -474,11 +478,11 @@ var nexGui = {
     goldCollection: true,
     gagChat: true,
     
-    removeMember(args) {
+    removeMember(name) {
         console.log(" remove");
         $(`#party_list-${name}`).remove();
-        nexGui.party.party.splice(nexGui.party.party.indexOf($(args).text()),1);
-        $('select[name="leaderSelect"]>[value='+$(args).text()+']').remove();
+        nexGui.party.party.splice(nexGui.party.party.indexOf(name),1);
+        $(`#leaderSelectList > option[value=${name}]`).remove();
     },
     
 	addMember(name) {
@@ -559,29 +563,6 @@ var nexGui = {
         $('#partyRight').empty();
         leaderSelect.appendTo('#partyRight');
         let partyOptionsTable = $('<table></table>', {id: 'partyOptionsTable'}).appendTo('#partyRight');
-        
-        let addOption = function(title, option) {
-        	let optionRow = $('<tr></tr>');
-            $('<td></td>', {style: "padding:0px 5px 0px 0px;display:block;font-weight:bold"}).text(title).appendTo(optionRow);
-
-            let lab = $('<label></label>', {
-                'class': 'nexswitch nexInput'
-            });
-            $('<input></input>', {
-                type: "checkbox",
-                'class': 'nexbox nexInput'
-            })
-                .prop('checked', option)
-                .on('change', function () {
-                    option = $(this).prop('checked');
-                })
-                .appendTo(lab);
-            $('<span></span>', {
-                'class': 'nexslider nexInput'
-            }).appendTo(lab);
-            $('<td></td>').css({'vertical-align':'middle'}).append(lab).appendTo(optionRow);
-            optionRow.appendTo('#partyOptionsTable');
-        }
         
         nexGui.addOption(partyOptionsTable, 'Collect Gold', nexGui.party.goldCollection, (e)=>{nexGui.party.goldCollection = e.target.checked});
         nexGui.addOption(partyOptionsTable, 'Accept Targets', nexGui.party.targetCalls, (e)=>{nexGui.party.targetCalls = e.target.checked});
@@ -985,8 +966,7 @@ var nexGui = {
         },
         stop() {clearInterval(this.timer)},
         callBack() {
-            console.log('nexTimer timer');
-            $('.nexTimer').each(function() {
+            $('.nexGui_timer').each(function() {
                 let num = parseInt($(this).text());
                 if (num == 0) {return};
                 num--;
@@ -1026,9 +1006,10 @@ var nexGui = {
         location: '#tbl_2h3c',
         font_size: '10px',
         lastEntry: false,
+        interval: 1000,
         timer: {},
         start() {
-            this.timer = setInterval(nexGui.feed.fetch, 1000);
+            this.timer = setInterval(nexGui.feed.fetch, this.interval);
         },
         stop() {clearInterval(this.timer)},
         layout() {
@@ -1052,7 +1033,6 @@ var nexGui = {
         },
         add(data) {
             let index = data.findIndex(e=>e.id == this.lastEntry.id);
-            console.log(index);
             if (index == 24) {return}
             for(let i = index+1; i < 25; i++) {
                 let entry = $('<div></div>').css({'font-size':this.font_size})

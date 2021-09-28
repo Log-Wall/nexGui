@@ -73,7 +73,7 @@ var nexGui = {
 
         let makeTab = function(tab, options) {
             tab = Object.create(Tab);
-            tab.init(options[0],options[1],options[2],'https://cdn.jsdelivr.net/gh/Log-Wall/nexMap/profile',options[4]);
+            tab.init(options[0],options[1],options[2],'profile',options[4]);
             tab.activate();
             return tab;
         }
@@ -487,8 +487,8 @@ var nexGui = {
                     'justify-content':'space-between'
                 })
                 .appendTo(this.location);
-            let partyLeft = $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
-            let partyRight = $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
+            $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
+            $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
 
             let leaderSelect = $("<div></div>", {id: "leaderSelector", style: "margin: 0 0 10px 0"});
             $("<p>Party Leader:  </p>", {}).appendTo(leaderSelect);
@@ -501,10 +501,6 @@ var nexGui = {
             .appendTo(leaderSelect);
             for (let i=0; i < nexGui.party.party.length; i++) {
                 $("<option></option>", {value: nexGui.party.party[i]}).text(nexGui.party.party[i]).appendTo(leaderSelectList);
-            }
-
-            let removeMember = function(args) {
-                nexGui.party.removeMember(args)
             }
             
             let addMember = function(name) {
@@ -538,29 +534,6 @@ var nexGui = {
             $('#partyRight').empty();
             leaderSelect.appendTo('#partyRight');
             $('<table></table>', {id: 'partyOptionsTable'}).appendTo('#partyRight');
-            
-            let addOption = function(title, option) {
-                let optionRow = $('<tr></tr>');
-                $('<td></td>', {style: "padding:0px 5px 0px 0px;display:block;font-weight:bold"}).text(title).appendTo(optionRow);
-
-                let lab = $('<label></label>', {
-                    'class': 'nexswitch nexInput'
-                });
-                $('<input></input>', {
-                    type: "checkbox",
-                    'class': 'nexbox nexInput'
-                })
-                    .prop('checked', option)
-                    .on('change', function () {
-                        option = $(this).prop('checked');
-                    })
-                    .appendTo(lab);
-                $('<span></span>', {
-                    'class': 'nexslider nexInput'
-                }).appendTo(lab);
-                $('<td></td>').css({'vertical-align':'middle'}).append(lab).appendTo(optionRow);
-                optionRow.appendTo('#partyOptionsTable');
-            }
         }
     },
 

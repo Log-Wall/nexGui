@@ -1101,3 +1101,53 @@ client.relayout_status_bar = function() {
     divs.filter('#status-target').css('width', 'calc(' + 2 * 100 / len + '% - '+diff+'px)');
     divs.filter('#status-level').css('width', firstw+'px');
 }
+
+client.generate_text_block = function(lines) {
+    var count = 0;
+
+    var timestamp;
+    if (client.show_timestamp_milliseconds === true)
+        timestamp = client.getTimeMS();
+    else
+        timestamp = client.getTimeNoMS();
+    var cl = "timestamp mono no_out";
+    timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
+
+    var res = '';
+
+    var counter = 0;
+    for (var i = 0; i < lines.length; ++i) {
+        var txt = lines[i].parsed_line;
+        var font = lines[i].monospace ? 'mono' : '';
+        var line = "<div class=\"" + font + "\">" + timestamp + (txt ? txt.formatted() : '') + "</div>";
+
+        // we want gagged lines to be logged, too
+        if (logging && txt) append_to_log(line);
+
+        if (lines[i].gag) continue;
+        counter++;
+
+        // Added this snippet to allow print() to inject lines
+		if (lines[i].type == 'html') {
+        	line = "<div class=\"" + font + "\">" + timestamp + lines[i].line + "</div>";
+            txt = true;
+        }
+
+        if (txt) {
+            count++;
+            res += line;
+        }
+        var pr = lines[i].parsed_prompt;
+        if (pr && (count > 0)) {   // no prompt if we gagged everything
+            res += "<div class=\"prompt " + font + "\">" + timestamp + pr.formatted() + "</div>";
+        }
+        // empty line - include it if it's neither the first nor the last one
+        // using "counter" instead of "i" fixes problems where the empty line is included after channel markers and such
+        if ((!pr) && (!txt) && (counter > 1) && (i < lines.length - 1)) {
+            res += '<div line>' + timestamp + '&nbsp;' + '</div>';
+        }
+    }
+    if (client.extra_break && res.length) res += "<br />";
+    return res;
+}
+        

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.0.7',
+    version: '0.0.9',
     class: 'Occultist',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
@@ -133,7 +133,8 @@ var nexGui = {
         // Moves the default map tap into our new container.
         box_2h1v2.elements = [JSON.parse(JSON.stringify(find_client_layout_element('box_2').elements[0]))];
         $('#container_1').appendTo('#box_2h1v2').css('height', '100%');
-console.log(find_client_layout_element('box_2').elements);
+
+        box_2h1.elements = [box_2h1v1, box_2h1v2]
         find_client_layout_element('box_2').elements = [box_2h1, box_2h2, box_2h3, box_2h4];
 
         /***********************************************************************

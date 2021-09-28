@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.0.6',
+    version: '0.0.7',
     class: 'Occultist',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
@@ -470,7 +470,7 @@ console.log(find_client_layout_element('box_2').elements);
     affCalls: true,
     callTargets: false,
     callAffs: false,
-    goldCollection: basher.goldCollection,
+    goldCollection: true,
     gagChat: true,
     
     removeMember(args) {

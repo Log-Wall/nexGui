@@ -84,7 +84,10 @@ var nexGui = {
         $('body').css('line-height', '18px');*/
         
     },
-    addOption(container, title, option, handler = ()=>{}) {
+    addOption(container, title, option, handler) {
+        handler = (e)=>{
+            nexSys.eventStream.raiseEvent(`nexGui-option-${title.replaceAll(' ','')}`, e.target.checked);
+        }
         let optionRow = $('<tr></tr>', {id:`nexGui-option-${title.replaceAll(' ','')}`});
         $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).text(title).appendTo(optionRow);
 

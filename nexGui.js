@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.0',
+    version: '0.1.1',
     class: 'Occultist',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
@@ -40,6 +40,18 @@ var nexGui = {
         // Room target CSS
         this.inject('.nexGui_room-target   { outline: 1px solid red; }');
 
+        // Nexus override CSS
+        this.inject('#user_input {width:100%;border-radius:0px;margin:0 0 0 0}');
+        this.inject('#data_form {height:100%}');
+        this.inject('#input {bottom:2px;width:100%}');
+        this.inject('.ui-tabs > .tab_content {border-radius:0;top:-0.5px;height:calc(100% - 11px)}');
+        this.inject('.tab_container {height:100%}');
+        this.inject('#tab_content_main_output {height:calc(100% - 8px);padding: 6px 6px 6px 6px}');
+        this.inject('.tab_nav {position:absolute;bottom: 5px;right: 0}');
+        this.inject('.ui-tabs {padding:0}');
+        this.inject('#channel_all div {margin-bottom:5px}');
+        this.inject('body {line-height:18px}');
+        /*
         $('#user_input').css({
             'width':'100%',
             'border-radius':'0px',
@@ -69,7 +81,7 @@ var nexGui = {
 
         $('.ui-tabs').css({padding:0});
         $('#channel_all div').css('margin-bottom', '5px');
-        $('body').css('line-height', '18px');
+        $('body').css('line-height', '18px');*/
         
     },
     addOption(container, title, option, handler = ()=>{}) {
@@ -761,54 +773,8 @@ var nexGui = {
             }
             return dmg;
         },
-         actionMsg1(who, what, subject) {
-             let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
-             let hpcolor = '';
-             if (hpperc > 75) {
-                 hpcolor = 'limegreen';
-             } else if (hpperc > 50) {
-                 hpcolor = 'yellow';
-             } else if (hpperc > 20) {
-                 hpcolor = 'orange';
-             } else if (hpperc >= 0) {
-                 hpcolor = 'red';
-             } else {
-                 hpcolor = 'white';
-             }
-            
-             let tab = $("<table></table>", {class: "mono"})
-                 .css({
-                    display: 'inline-table',
-                    "text-align": "left",
-                    "table-layout": "fixed",
-                    "max-width": "90%",
-                    "border-spacing": "0px",
-                    'vertical-align': 'middle',
-                    
-                });
-             let row = $("<tr></tr>").appendTo(tab)
-             $("<td></td>", {style: 'width:100px'}).text('').appendTo(row)
-             $("<td></td>").text(who).css({color: 'white', width: '100px'}).appendTo(row)
-             $('<td></td>')
-                 .append($('<span></span>', {style:"color:white"}).text('['))
-                 .append($('<span></span>', {style:"color:orange"}).text(what))
-                 .append($('<span></span>', {style:"color:white"}).text(`]:${this.checkCrit()}`))
-                 .append($('<span></span>', {style:"color:white"}).text('('))
-                 .append($('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`))
-                 .append($('<span></span>', {style:"color:white"}).text(')'))
-                 .appendTo(row);
-             $("<td></td>")
-                 .append($('<span></span>', {style:"color:white"}).text('('))
-                 .append($('<span></span>', {style:`color:${hpcolor}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:'DEAD'}`))
-                 .append($('<span></span>', {style:"color:white"}).text(')'))
-                 .append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
-             //.append($("<td></td>").text(''))
-    
-             nexPrint(tab[0].outerHTML);
-             //ow_Write('#test_stream', tab[0].outerHTML);
-        },
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
-        // This is an alternate function to replicate the evenly spaced out display with divs.
+        // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who, what, subject) {
              let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
              let hpcolor = '';
@@ -997,6 +963,7 @@ var nexGui = {
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
             
             timerTable.appendTo(this.location);
+            this.start();
         }
     
     },
@@ -1004,7 +971,7 @@ var nexGui = {
     feed: {
         url: 'https://api.achaea.com/gamefeed.json',
         location: '#tbl_2h3c',
-        font_size: '10px',
+        font_size: '11px',
         lastEntry: false,
         interval: 1000,
         timer: {},

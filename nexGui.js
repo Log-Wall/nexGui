@@ -390,8 +390,8 @@ var nexGui = {
             location: '#tbl_2h1v1a',
             add(item) {
                 let entry = $('<tr></tr>', {id: `item-${item.id}`});
-                $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.colors[item.id]||this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -776,6 +776,42 @@ var nexGui = {
             }
             return dmg;
         },
+        actionWho(who) {
+            return $("<div></div>").css({
+               display:'table-cell',
+                width: '20%',
+                color: 'white'
+           }).text(who)
+        },
+        actionWhat() {
+
+        },
+        actionSubject() {
+            return $('<div></div>').css({
+                display:'table-cell',
+                 width: '35%'
+            })
+        },
+        actionMsg1(who, what, subject) {
+            let tab = $("<div></div>", {class: "mono"}).css({
+                display:'inline-table',
+               'width': 'calc(100% - 14ch)',
+               'text-align': 'left',
+               'table-layout': 'fixed'
+           });
+           let row = $("<div></div>").css({
+                display:'table-row'
+            })
+                 .appendTo(tab)
+            $("<div></div>").css({
+                display:'table-cell',
+                    width: '10%'
+            }).text('').appendTo(row);
+            row.append(actionWho(who));
+            row.append(actionWhat(what));
+            row.append(actionSubject(subject));
+
+        },
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who, what, subject) {
@@ -836,7 +872,7 @@ var nexGui = {
                     display:'table-cell'
                 })
                  .append($('<span></span>', {style:"color:white"}).text('('))
-                 .append($('<span></span>', {style:`color:${hpcolor}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:'DEAD'}`))
+                 .append($('<span></span>', {style:`color:${hpcolor}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`))
                  .append($('<span></span>', {style:"color:white"}).text(')'))
                  .append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
     
@@ -929,12 +965,13 @@ var nexGui = {
     timer: {
         location: '#tbl_5b',
         font_size: '11px',
-        timer: {},
-        start() {
-            this.timer = setInterval(nexGui.timer.callBack, 1000);
+        _timer: {},
+        timers: {},
+        _start() {
+            this._timer = setInterval(nexGui._timer.callBack, 1000);
         },
-        stop() {clearInterval(this.timer)},
-        callBack() {
+        _stop() {clearInterval(this._timer)},
+        _callBack() {
             $('.nexGui_timer').each(function() {
                 let num = parseInt($(this).text());
                 if (num == 0) {return};
@@ -942,14 +979,20 @@ var nexGui = {
                 $(this).text(num);
             });
         },
-        add(id, label) {
+        add(id, label, duration = 0) {
             $('<tr></tr>')
                     .append($('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(label))
                     .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px"}).text(0))
                     .appendTo('#nexTimerTable');
+            this.timers[id] = {
+                id: id,
+                duration: duration+1,
+                start() {$(`#${id}Timer`).text(this.duration)}
+            }
         },
         remove(id) {
             $(`#${id}Timer`).remove();
+            delete this[id];
         },
         layout() {
             $(this.location).empty();
@@ -1005,11 +1048,12 @@ var nexGui = {
             let index = data.findIndex(e=>e.id == this.lastEntry.id);
             if (index == 24) {return}
             for(let i = index+1; i < 25; i++) {
-                let entry = $('<div></div>').css({'font-size':this.font_size})
+                let entry = $('<div></div>', {class: 'nexGui_feed'}).css({'font-size':this.font_size})
                 $('<span></span>').css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
                 $('<span></span>').text(data[i].description).appendTo(entry)
                 entry.appendTo(this.location);
             }
+            $(this.location).animate({ scrollTop: 9999 }, "fast");
             this.lastEntry = data[24];
         }
     },

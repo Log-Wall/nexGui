@@ -298,12 +298,7 @@ var nexGui = {
         send_direct('pwho');
         send_direct('enemies');
         send_direct('allies');
-    },
-    resize(left, middle) {
-        find_client_layout_element('box_5').weight=(left/100);
-        find_client_layout_element('box_3').weight=(middle/100);
-        find_client_layout_element('box_2').weight=((100-left-middle)/100);
-        client.redraw_interface();
+        send_direct('def');
     },
 
     room: {
@@ -396,8 +391,8 @@ var nexGui = {
             location: '#tbl_2h1v1a',
             add(item) {
                 let entry = $('<tr></tr>', {id: `item-${item.id}`});
-                $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${nexGui.room.colors[item.id]||nexGui.room.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.colors[item.id]||this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -420,10 +415,6 @@ var nexGui = {
                         margin: '0px 10px 0px 0px'
                     })
                     .text(player)
-                    .on('click', (e) => {
-                        send_direct(`settarget ${player}`);
-                        $(e.currentTarget).appendTo(nexGui.room.players.location);
-                    })
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span></span>', {style:"padding:0px 5px 0px 0px"})
@@ -951,7 +942,7 @@ var nexGui = {
             console.log(typeof def);
             if (this.keepup.indexOf(def) == -1) {return;}
             
-            $('<div></div>', {id: `def-${def}`})
+            let d = $('<div></div>', {id: `def-${def}`})
             .css({
                 color: this.font_color,
                 'font-size': this.font_size,
@@ -963,21 +954,12 @@ var nexGui = {
                 margin: '2px 0px 0px 0px'
             })
             .text(def.toProperCase())
-            .appendTo(this.location);
+            d.appendTo(this.location);
             console.log(this.location);
         },
         remove(def) {
             $(`#def-${def}`).remove();
-        },
-        update(defs) {
-            this.layout();
-            this.keepup.forEach(e => {
-                if (defs.findIndex(el => el.name == e) == -1) {
-                    this.add(e)
-                }
-            });
         }
-
         
     },
 
@@ -987,7 +969,7 @@ var nexGui = {
         _timer: {},
         timers: {},
         _start() {
-            this._timer = setInterval(nexGui._timer.callBack, 1000);
+            this._timer = setInterval(nexGui.timer._callBack, 1000);
         },
         _stop() {clearInterval(this._timer)},
         _callBack() {
@@ -1028,7 +1010,7 @@ var nexGui = {
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
             
             timerTable.appendTo(this.location);
-            this.start();
+            this._start();
         }
     
     },

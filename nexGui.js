@@ -299,6 +299,12 @@ var nexGui = {
         send_direct('enemies');
         send_direct('allies');
     },
+    resize(left, middle) {
+        find_client_layout_element('box_5').weight=(left/100);
+        find_client_layout_element('box_3').weight=(middle/100);
+        find_client_layout_element('box_2').weight=((100-left-middle)/100);
+        client.redraw_interface();
+    },
 
     room: {
         displayID: true,
@@ -390,8 +396,8 @@ var nexGui = {
             location: '#tbl_2h1v1a',
             add(item) {
                 let entry = $('<tr></tr>', {id: `item-${item.id}`});
-                $('<td></td>', {style:`color:${nexGui.colors[item.id]||this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${nexGui.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.room.colors[item.id]||nexGui.room.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -414,6 +420,10 @@ var nexGui = {
                         margin: '0px 10px 0px 0px'
                     })
                     .text(player)
+                    .on('click', (e) => {
+                        send_direct(`settarget ${player}`);
+                        $(e.currentTarget).appendTo(nexGui.room.players.location);
+                    })
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span></span>', {style:"padding:0px 5px 0px 0px"})
@@ -482,110 +492,110 @@ var nexGui = {
     },
 
     party: {
-    location: '#tbl_2h4c',
-    font_size: '11px',
-    party: [GMCP.Status.name],
-    leader: GMCP.Status.name,
-    targetCalls: true,
-    affCalls: true,
-    callTargets: false,
-    callAffs: false,
-    goldCollection: true,
-    gagChat: true,
-    
-    removeMember(name) {
-        console.log(" remove");
-        $(`#party_list-${name}`).remove();
-        nexGui.party.party.splice(nexGui.party.party.indexOf(name),1);
-        $(`#leaderSelectList > option[value=${name}]`).remove();
-    },
-    
-	addMember(name) {
-        if (nexGui.party.party.indexOf(name) == -1) {
-        	nexGui.party.party.push(name);
-        }
+        location: '#tbl_2h4c',
+        font_size: '11px',
+        party: [GMCP.Status.name],
+        leader: GMCP.Status.name,
+        targetCalls: true,
+        affCalls: true,
+        callTargets: false,
+        callAffs: false,
+        goldCollection: true,
+        gagChat: true,
         
-        $('<div></div>', {id: `party_list-${name}`})
-            .append($("<span></span>").text(name).click(function() {removeMember(this);}))
-            .appendTo($("#partyMemberList"));
+        removeMember(name) {
+            console.log(" remove");
+            $(`#party_list-${name}`).remove();
+            nexGui.party.party.splice(nexGui.party.party.indexOf(name),1);
+            $(`#leaderSelectList > option[value=${name}]`).remove();
+        },
         
-        $("<option></option>", {value: name}).text(name).appendTo($("#leaderSelectList"));
-	},
-    
-    updateMembers() {
-    	$('#partyMemberList').empty();
-        $('#leaderSelectList').empty();
-        this.party.forEach(e => this.addMember(e));
-    },
-    
-    layout() {    	
-        $('#partyDisplay').remove();
-        let partyDisplay = $('<div></div>', {id: 'partyDisplay'})
-        	.css({
-            	display:'flex',
-                'font-size': this.font_size,
-                'justify-content':'space-between'
+        addMember(name) {
+            if (nexGui.party.party.indexOf(name) == -1) {
+                nexGui.party.party.push(name);
+            }
+            
+            $('<div></div>', {id: `party_list-${name}`})
+                .append($("<span></span>").text(name).click(function() {removeMember(this);}))
+                .appendTo($("#partyMemberList"));
+            
+            $("<option></option>", {value: name}).text(name).appendTo($("#leaderSelectList"));
+        },
+        
+        updateMembers() {
+            $('#partyMemberList').empty();
+            $('#leaderSelectList').empty();
+            this.party.forEach(e => this.addMember(e));
+        },
+        
+        layout() {    	
+            $('#partyDisplay').remove();
+            let partyDisplay = $('<div></div>', {id: 'partyDisplay'})
+                .css({
+                    display:'flex',
+                    'font-size': this.font_size,
+                    'justify-content':'space-between'
+                })
+                .appendTo(this.location);
+            let partyLeft = $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
+            let partyRight = $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
+
+            let leaderSelect = $("<div></div>", {id: "leaderSelector", style: "margin: 0 0 10px 0"});
+            $("<p>Party Leader:  </p>", {}).appendTo(leaderSelect);
+            let leaderSelectList = $("<select></select>", {name: "leaderSelect", id: "leaderSelectList"})
+            .css({'font-size':this.font_size})
+            .change(function() {
+                console.log($(this).val());
+                nexGui.party.leader = $(this).val();
             })
-        	.appendTo(this.location);
-        let partyLeft = $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
-        let partyRight = $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
+            .appendTo(leaderSelect);
+            for (let i=0; i < nexGui.party.party.length; i++) {
+                $("<option></option>", {value: nexGui.party.party[i]}).text(nexGui.party.party[i]).appendTo(leaderSelectList);
+            }
 
-        let leaderSelect = $("<div></div>", {id: "leaderSelector", style: "margin: 0 0 10px 0"});
-        $("<p>Party Leader:  </p>", {}).appendTo(leaderSelect);
-        let leaderSelectList = $("<select></select>", {name: "leaderSelect", id: "leaderSelectList"})
-        .css({'font-size':this.font_size})
-        .change(function() {
-            console.log($(this).val());
-            nexGui.party.leader = $(this).val();
-        })
-        .appendTo(leaderSelect);
-        for (let i=0; i < nexGui.party.party.length; i++) {
-            $("<option></option>", {value: nexGui.party.party[i]}).text(nexGui.party.party[i]).appendTo(leaderSelectList);
+            let removeMember = function(args) {
+                nexGui.party.removeMember(args)
+            }
+            
+            let addMember = function(name) {
+                nexGui.party.addMember(name);
+            }
+            
+            let partyMemberInput = $("<input></input>", {
+                type: "text",
+                style: `width:10ch;height:${this.font_size}`,
+                id: "partyMemberInput",
+                name: "partyMemberInput",})
+                .keyup(function(event) {
+                    if (event.which === 13) {
+                        event.preventDefault();
+                        addMember($(this).val());
+                        $(this).val("");
+                    }   
+            })
+        
+            // Populate the LEFT side column of the pane
+            $('#partyLeft').empty();
+            $('<div></div>')
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Party Members"))
+                .appendTo('#partyLeft');
+            $('<div></div>', {id: 'partyMemberList'}).appendTo('#partyLeft');
+            partyMemberInput.appendTo('#partyLeft');
+            
+            
+            /////////////////////////////////////////////////////////////////////////////////////////
+            // Populate the RIGHT side column of the pane
+            $('#partyRight').empty();
+            leaderSelect.appendTo('#partyRight');
+            let partyOptionsTable = $('<table></table>', {id: 'partyOptionsTable'}).appendTo('#partyRight');
+            
+            nexGui.addOption(partyOptionsTable, 'Collect Gold', nexGui.party.goldCollection, (e)=>{nexGui.party.goldCollection = e.target.checked});
+            nexGui.addOption(partyOptionsTable, 'Accept Targets', nexGui.party.targetCalls, (e)=>{nexGui.party.targetCalls = e.target.checked});
+            nexGui.addOption(partyOptionsTable, 'Accept Affs', nexGui.party.affCalls, (e)=>{nexGui.party.affCalls = e.target.checked});
+            nexGui.addOption(partyOptionsTable, 'Call Targets', nexGui.party.callTargets, (e)=>{nexGui.party.callTargets = e.target.checked});
+            nexGui.addOption(partyOptionsTable, 'Call Affs', nexGui.party.callAffs, (e)=>{nexGui.party.callAffs = e.target.checked});
+            nexGui.addOption(partyOptionsTable, 'Gag Chat', nexGui.party.gagChat, (e)=>{nexGui.party.gagChat = e.target.checked});
         }
-
-        let removeMember = function(args) {
-            nexGui.party.removeMember(args)
-        }
-        
-        let addMember = function(name) {
-            nexGui.party.addMember(name);
-        }
-        
-        let partyMemberInput = $("<input></input>", {
-            type: "text",
-            style: `width:10ch;height:${this.font_size}`,
-            id: "partyMemberInput",
-            name: "partyMemberInput",})
-            .keyup(function(event) {
-                if (event.which === 13) {
-                    event.preventDefault();
-                    addMember($(this).val());
-                    $(this).val("");
-                }   
-        })
-	
-        // Populate the LEFT side column of the pane
-        $('#partyLeft').empty();
-        $('<div></div>')
-            .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Party Members"))
-            .appendTo('#partyLeft');
-        $('<div></div>', {id: 'partyMemberList'}).appendTo('#partyLeft');
-        partyMemberInput.appendTo('#partyLeft');
-        
-		
-        /////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the RIGHT side column of the pane
-        $('#partyRight').empty();
-        leaderSelect.appendTo('#partyRight');
-        let partyOptionsTable = $('<table></table>', {id: 'partyOptionsTable'}).appendTo('#partyRight');
-        
-        nexGui.addOption(partyOptionsTable, 'Collect Gold', nexGui.party.goldCollection, (e)=>{nexGui.party.goldCollection = e.target.checked});
-        nexGui.addOption(partyOptionsTable, 'Accept Targets', nexGui.party.targetCalls, (e)=>{nexGui.party.targetCalls = e.target.checked});
-        nexGui.addOption(partyOptionsTable, 'Accept Affs', nexGui.party.affCalls, (e)=>{nexGui.party.affCalls = e.target.checked});
-        nexGui.addOption(partyOptionsTable, 'Call Targets', nexGui.party.callTargets, (e)=>{nexGui.party.callTargets = e.target.checked});
-        nexGui.addOption(partyOptionsTable, 'Call Affs', nexGui.party.callAffs, (e)=>{nexGui.party.callAffs = e.target.checked});
-        nexGui.addOption(partyOptionsTable, 'Gag Chat', nexGui.party.gagChat, (e)=>{nexGui.party.gagChat = e.target.checked});
-    }
     },
 
     bash: {
@@ -941,7 +951,7 @@ var nexGui = {
             console.log(typeof def);
             if (this.keepup.indexOf(def) == -1) {return;}
             
-            let d = $('<div></div>', {id: `def-${def}`})
+            $('<div></div>', {id: `def-${def}`})
             .css({
                 color: this.font_color,
                 'font-size': this.font_size,
@@ -953,12 +963,21 @@ var nexGui = {
                 margin: '2px 0px 0px 0px'
             })
             .text(def.toProperCase())
-            d.appendTo(this.location);
+            .appendTo(this.location);
             console.log(this.location);
         },
         remove(def) {
             $(`#def-${def}`).remove();
+        },
+        update(defs) {
+            this.layout();
+            this.keepup.forEach(e => {
+                if (defs.findIndex(el => el.name == e) == -1) {
+                    this.add(e)
+                }
+            });
         }
+
         
     },
 

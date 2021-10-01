@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.1',
+    version: '0.1.3',
     class: 'Occultist',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals

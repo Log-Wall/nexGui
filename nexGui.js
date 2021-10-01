@@ -51,6 +51,10 @@ var nexGui = {
         this.inject('.ui-tabs {padding:0}');
         this.inject('#channel_all div {margin-bottom:5px}');
         this.inject('body {line-height:18px}');
+
+        // Mouse over API display
+
+
         /*
         $('#user_input').css({
             'width':'100%',
@@ -305,6 +309,7 @@ var nexGui = {
         displayID: true,
         enemies: [],
         allies: [],
+        colors: {},
         highlightNames(txt) {
             let names = Object.keys(cdb.regex);
             for(let i = 0; i < names.length; i++) {
@@ -391,8 +396,8 @@ var nexGui = {
             location: '#tbl_2h1v1a',
             add(item) {
                 let entry = $('<tr></tr>', {id: `item-${item.id}`});
-                $('<td></td>', {style:`color:${nexGui.colors[item.id]||this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${nexGui.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.room.colors[item.id]||nexGui.room.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -1109,5 +1114,121 @@ var nexGui = {
             $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('[Insomnia]').appendTo(defs);
         }
     
+    },
+    cdb: {
+        getCharacterServerList() {
+            $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
+                for ( i = 0; i < data.characters.length; i++) {
+                    getCharacterByURI(data.characters[i].uri);
+                }
+            });
+        },
+
+        getCharacterByURI(uri) {
+            $.getJSON( uri, function( data ) {
+                data.time = client.Date();
+                data.user = GMCP.Status.name;
+                nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true})
+            });
+        },
+        
+        getCharacterByName(name) {
+            $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", function ( data ) {
+                data.time = client.Date();
+                data.user = GMCP.Status.name;
+                nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});
+            })
+              .fail(function() {
+
+              });
+        },
+    },
+
+    mongo: {
+        entries: [],
+        collect() {
+            // Get all denizens in the current room
+            let roomDenizens = GMCP.Char.Items.List.items.filter(x => x.attrib == 'm' && !this.ignoreList.some(rx => rx.test(x.name)));// || x.attrib == 'mx');
+            let newDenizens = [];
+            let roamers = [];
+
+            if(roomDenizens.length>0) {
+                // Remove any denizens that are already in the entries
+                newDenizens = roomDenizens.filter(x => !this.entries.find(y => x.id == y.id));
+                if (this.logging) {console.log(newDenizens);}
+                // Find denizens that already have entries, but are in a new room.
+                roamers = roomDenizens.filter(x => this.entries.find(y => x.id == y.id && !y.room.includes(GMCP.Room.Info.num)));
+            }
+            else
+                return;
+    
+            // Add room number and area to each denizen object
+            for(let denizen of newDenizens) {
+                denizen.room = [GMCP.Room.Info.num];
+                denizen.area = {name: GMCP.Room.Info.area, id: GMCP.CurrentArea.id}
+                denizen.user = {
+                    id: this.user.id,
+                    name: GMCP.Status.name
+                }
+                this.entries.push(denizen);
+                this.db.insertOne(denizen);           
+            }
+    
+            for(let denizen of roamers) {
+                console.log(denizen);
+                let denizenUpdate = this.entries.find(x => x.id == denizen.id)
+                console.log(denizenUpdate);
+                denizenUpdate.room.push(GMCP.Room.Info.num);
+                this.db.updateOne({id:denizenUpdate.id}, {$set:{room:denizenUpdate.room}})
+            }   
+        },
+        async startUp() {
+            console.log('Mongo startup called');
+
+            if (!Realm) {
+                console.log('Mongo startup cancelled. Realm not loaded.');
+                return;
+            }
+
+            this.app = new Realm.App({ id: "nexmap-izeal" });
+            this.apiKey = "pE7xABGhoWjv2XvSLvON4D2oOSF8WcmEwXkLoKzE2bqlIX1HpkxQIJTLUbr0qhPw"; // Provided API key
+            this.credentials = await Realm.Credentials.apiKey(this.apiKey);
+            this.user = await this.app.logIn(this.credentials)
+            this.user.id === this.app.currentUser.id;
+            this.mongodb = this.app.currentUser.mongoClient("mongodb-atlas");
+            this.db = this.mongodb.db('nexGui').collection('characters')
+            this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
+            console.log('MongoDB loaded');
+            nexMap.display.notice(`Denizen database loaded with ${this.entries.length} NPC entries.`);
+        },
+        ignoreList: [
+            /a dervish/,
+            /a sharp-toothed gremlin/,
+            /a chaos orb/,
+            /a bloodleech/,
+            /a minion of chaos/,
+            /a worm/,
+            /a green slime/,
+            /a soulmaster/,
+            /a humbug/,
+            /a chimera/,
+            /a bubonis/,
+            /a chaos storm/,
+            /a chaos hound/,
+            /a withered crone/,
+            /a pathfinder/,
+            /a doppleganger/,
+            /an ethereal firelord/,
+            /a simpering sycophant/,
+            /a water weird/,
+            /an eldritch abomination/,
+            /Khaseem/,
+            /a guardian angel/,
+            /a diminutive homunculus/,
+            /a Baalzadeen/,
+            /shipmate/,
+            /a squad of/,
+            /swashbuckler/
+        ]
     }
 }

@@ -1101,8 +1101,6 @@ var nexGui = {
                 .appendTo(this.location);
         },
         add(def) {
-            console.log(def);
-            console.log(typeof def);
             if (this.keepup.indexOf(def) == -1) {return;}
             
             let d = $('<div></div>', {id: `def-${def}`})
@@ -1118,10 +1116,16 @@ var nexGui = {
             })
             .text(def.toProperCase())
             d.appendTo(this.location);
-            console.log(this.location);
         },
         remove(def) {
             $(`#def-${def}`).remove();
+        },
+        update(defs) {
+            this.layout();
+            this.keepup.forEach(e=>{
+                if (defs.findIndex(el=>el.name == e) == -1)
+                    this.add(e)
+            })
         }
         
     },

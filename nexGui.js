@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.1',
+    version: '0.2.4',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -1361,9 +1361,8 @@ var nexGui = {
             name = name.toProperCase();
             city = city.toLowerCase();
             if (nexGui.colors.city[city] && nexGui.cdb.players[name]) {
-                let update = nexGui.cdb.players[name];
-                update.city = city;
                 nexGui.cdb.players[name].city = city;
+                let update = JSON.parse(JSON.stringify(nexGui.cdb.players[name]));                
                 delete update['regex'];              
                 nexGui.mongo.db.updateOne({'name':update.name}, update);
             }

@@ -1,19 +1,19 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.6',
+    version: '0.1.7',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
-    colors = {
+    colors: {
         city: {
-            "cyrene":"#4078a5",
-            "targossas":"#b3b300",
-            "eleusis":"#28a428",
-            "mhaldor":"red",
-            "hashan":"#8a2db9",
-            "ashtan":"#cc0066",
-            "(none)":"gray",
-            "(hidden)":"gray"
+            "(hidden)": "gray",
+            "(none)": "gray",
+            ashtan: "#800080",
+            cyrene: "#008080",
+            eleusis: "#00ff00",
+            hashan: "#808000",
+            mhaldor: "#ff0000",
+            targossas: "#ffffff"
         }
     },
     inject(rule) {

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.9',
+    version: '0.2.0',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -309,13 +309,6 @@ var nexGui = {
         nexGui.def.layout();
         nexGui.feed.layout();
         nexGui.generateStyle();
-
-        send_direct('pwho');
-        send_direct('enemies');
-        send_direct('allies');
-        send_direct('def');
-        send_direct('ql');
-        this.notice(`GUI version ${this.version} loaded and ready for use.`);
     },
     notice(txt, html = false) {
         let msg = $('<span></span>', {
@@ -341,6 +334,115 @@ var nexGui = {
     
         client.print(msg[0].outerHTML);
     },
+    startUp() {
+        // Custom print function allowing easy printing of HTML and printing inline with text blocks.
+        client.nexPrint = function(s, selector = '#output_main')
+        {   
+            if (client.current_block) {
+                let inline = {
+                    line: s,
+                    type: 'html'
+                }
+                let idx = client.current_block.length;
+                if (client.current_line) idx = client.current_block.indexOf(client.current_line) + 1;
+                client.current_block.splice(idx, 0, inline);
+            } else {
+                let timestamp;
+                if (client.show_timestamp_milliseconds === true)
+                    timestamp = client.getTimeMS();
+                else
+                    timestamp = client.getTimeNoMS();
+                let cl = "timestamp mono no_out";
+                timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
+                ow_Write(selector, timestamp+s);
+            }
+        }
+        //nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
+
+        // Populate nexGUI GMCP events
+        let nexGuiRoomAddAll = function(args) {
+            nexGui.room.addAll(args.items);
+        }
+        nexSys.eventStream.registerEvent('Char.Items.List', nexGuiRoomAddAll);
+
+        let nexGuiRoomAdd = function(args) {
+            if (args.location == "room")
+                nexGui.room.add(args.item);
+        }
+        nexSys.eventStream.registerEvent('Char.Items.Add', nexGuiRoomAdd);
+
+        let nexGuiRoomRemove = function(args) {
+            if (args.location == "room")
+                nexGui.room.remove(args.item);
+        }
+        nexSys.eventStream.registerEvent('Char.Items.Remove', nexGuiRoomRemove);
+
+        let nexGuiRoomPlayers = function(args) {
+            nexGui.room.addPlayers(args);
+            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
+        }
+        nexSys.eventStream.registerEvent('Room.Players', nexGuiRoomPlayers);
+
+        let nexGuiAddPlayer = function(args) {
+            nexGui.room.players.add(args.name);
+            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
+        }
+        nexSys.eventStream.registerEvent('Room.AddPlayer', nexGuiAddPlayer);
+
+        let nexGuiRemovePlayer = function(args) {
+            nexGui.room.players.remove(args);
+            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
+        }
+        nexSys.eventStream.registerEvent('Room.RemovePlayer', nexGuiRemovePlayer);
+
+        let nexGuiDefenceAdd = function(args) {
+            nexGui.def.add(args[0]);
+        }
+        nexSys.eventStream.registerEvent('Char.Defences.Remove', nexGuiDefenceAdd);
+
+        let nexGuiDefenceRemove = function(args) {
+            nexGui.def.remove(args.name);
+        }
+        nexSys.eventStream.registerEvent('Char.Defences.Add', nexGuiDefenceRemove);
+
+        let nexGuiDefences = function(args) {
+            nexGui.def.update(args);
+        }
+        nexSys.eventStream.registerEvent('Char.Defences.List', nexGuiDefences);
+
+        let nexGuiTargetInfo = function(args) {
+            GMCP.TargetHP_Change = parseInt(GMCP.TargetHP_Old.slice(0,GMCP.TargetHP_Old.length-1,1))-parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
+            GMCP.TargetHP_Old = args.hpperc;
+        }
+        nexSys.eventStream.registerEvent('IRE.Target.Info', nexGuiTargetInfo);
+
+        let nexGuiCharStatus = function(args) {
+            nexGui.bash.update();
+        }  
+        nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
+
+        let nexGuiMiscAchievement = function(args) {
+            if (args?.name == 'TotalCreaturesKilled') {
+                nexGui.bash.sessionCount++;
+                nexGui.bash.instanceCount++;
+            }
+            nexGui.bash.update();
+        }       
+        nexSys.eventStream.registerEvent('IRE.Misc.Achievement', nexGuiMiscAchievement);
+                
+        let channelPlayersMongo = function(args) {
+            nexGui.cdb.gmcpChannelPlayers(args);
+        }
+        nexSys.eventStream.registerEvent('Comm.Channel.Players', channelPlayersMongo);
+        // $('#character_module_class').css('opacity', '15%')
+        this.layout();
+        client.send_direct('pwho');
+        client.send_direct('enemies');
+        client.send_direct('allies');
+        client.send_direct('def');
+        client.send_direct('ql');
+        this.notice(`GUI version ${this.version} loaded and ready for use.`);
+    },   
 
     room: {
         displayID: true,
@@ -381,6 +483,50 @@ var nexGui = {
             else
                 this.items.remove(item);
         },
+        layout() {
+            $('#room_npc_table').remove();
+            $('#room_item_table').remove();
+            if ($('#room_npc_table').length < 1) {
+                $("<table></table>", {
+                    id: "room_npc_table",
+                }).css({
+                    'font-size':nexGui.room.npcs.size,
+                    'text-align':'left',
+                    //'table-layout':'fixed',
+                    'max-width':'100%',
+                    'border-spacing':'0px',
+                    'padding': '1px'
+                }).appendTo(nexGui.room.npcs.location);
+                $('<th></th>', {style:"width:auto"}).appendTo('#room_npc_table');
+                $('<th></th>', {style: "width:auto"}).appendTo('#room_npc_table');
+            };
+            if ($('#room_item_table').length < 1) {
+                $("<table></table>", {
+                    id: "room_item_table",
+                }).css({
+                    'font-size':nexGui.room.items.size,
+                    'text-align':'left',
+                    //'table-layout':'fixed',
+                    'max-width':'100%',
+                    'border-spacing':'0px',
+                    'padding': '1px'
+                }).appendTo(nexGui.room.items.location);
+                $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
+                $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
+            };
+            $(this.npcs.location, this.items.location).css({
+                overflow:'auto',
+                height:'100%'
+            });
+            $(this.items.location).css({
+                overflow:'auto',
+                height:'100%'
+            });
+            $(this.players.location).css({
+                display:'flex',
+                'flex-wrap':'wrap'
+            });
+        }, 
         npcs: {
             font: 'veranda',
             size: '11px',
@@ -477,52 +623,25 @@ var nexGui = {
             },
             remove(player) {
                 $(`#player-${player}`).remove();
+            },
+            dialog(player) {
+                let c = nexGui.cdb.players[player];
+                let d = $('<div id="nexGui-dialog"></div>')
+                let t = $('<table></table>').appendTo(d);
+                let k = Object.keys(c);
+                for (let i = 0; i < k.length; i++) {
+                    if (k == 'time') {break;}
+                    let r = $('<tr></tr>');
+                    $('<td></td>').text(`${k[i]}: `).appendTo(r);
+                    $('<td></td>').text(`${c[k[i]]}`).appendTo(r);
+                    r.appendTo(t)
+                }
+            
+                d.dialog({
+                    title: player
+                });
             }
-        },
-        layout() {
-            $('#room_npc_table').remove();
-            $('#room_item_table').remove();
-            if ($('#room_npc_table').length < 1) {
-                $("<table></table>", {
-                    id: "room_npc_table",
-                }).css({
-                    'font-size':nexGui.room.npcs.size,
-                    'text-align':'left',
-                    //'table-layout':'fixed',
-                    'max-width':'100%',
-                    'border-spacing':'0px',
-                    'padding': '1px'
-                }).appendTo(nexGui.room.npcs.location);
-                $('<th></th>', {style:"width:auto"}).appendTo('#room_npc_table');
-                $('<th></th>', {style: "width:auto"}).appendTo('#room_npc_table');
-            };
-            if ($('#room_item_table').length < 1) {
-                $("<table></table>", {
-                    id: "room_item_table",
-                }).css({
-                    'font-size':nexGui.room.items.size,
-                    'text-align':'left',
-                    //'table-layout':'fixed',
-                    'max-width':'100%',
-                    'border-spacing':'0px',
-                    'padding': '1px'
-                }).appendTo(nexGui.room.items.location);
-                $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
-                $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
-            };
-            $(this.npcs.location, this.items.location).css({
-                overflow:'auto',
-                height:'100%'
-            });
-            $(this.items.location).css({
-                overflow:'auto',
-                height:'100%'
-            });
-            $(this.players.location).css({
-                display:'flex',
-                'flex-wrap':'wrap'
-            });
-        }        
+        }         
     },
 
     party: {
@@ -1192,6 +1311,15 @@ var nexGui = {
                 console.log(`nexGui.cdb.getCharacterByName(${name}) failed.`)
               });
         },
+        updateCity(name, city) {
+            if (nexGui.colors.city[city] && nexGui.cdb.players[name]) {
+                let update = nexGui.cdb.players[name];
+                update.city = city;
+                nexGui.cdb.players[name].city = city;
+                delete update['regex'];              
+                nexGui.mongo.db.updateOne({'name':update.name}, update);
+            }
+        }
     },
 
     mongo: {

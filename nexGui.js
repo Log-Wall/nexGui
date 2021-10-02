@@ -1,8 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.3',
-    class: 'Occultist',
+    version: '0.1.5',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     inject(rule) {
@@ -303,6 +302,31 @@ var nexGui = {
         send_direct('enemies');
         send_direct('allies');
         send_direct('def');
+        this.notice(`GUI version ${this.version} loaded and ready for use.`);
+    },
+    notice(txt, html = false) {
+        let msg = $('<span></span>', {
+            class: "mono"
+        });
+        $('<span></span>', {
+            style: 'color:DodgerBlue'
+        }).text('[-').appendTo(msg);
+        $('<span></span>', {
+            style: 'color:OrangeRed'
+        }).text('nexGui').appendTo(msg);
+        $('<span></span>', {
+            style: 'color:DodgerBlue'
+        }).text('-] ').appendTo(msg);
+    
+        if (html) {
+            txt.appendTo(msg)
+        } else {
+            $('<span></span>', {
+                style: 'color:GoldenRod'
+            }).text(txt).appendTo(msg)
+        }
+    
+        client.print(msg[0].outerHTML);
     },
 
     room: {
@@ -397,7 +421,7 @@ var nexGui = {
             add(item) {
                 let entry = $('<tr></tr>', {id: `item-${item.id}`});
                 $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${nexGui.room.colors[item.id]||nexGui.room.colors[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${nexGui.colors.room[item.id]||nexGui.colors.room[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -776,6 +800,7 @@ var nexGui = {
                 let line = block.line;
     
                 if (line && line.indexOf(this.crits[i][0]) > 0) {
+                    block.gag = true;
                     dmg = this.crits[i][1];
                     break;
                 }
@@ -1116,37 +1141,47 @@ var nexGui = {
     
     },
     cdb: {
+        players: {},
+        gmcpChannelPlayers(args) {
+            for(let i = 0; i < args.length; i++) {
+                if (!this.players[args.name]) {
+                    this.getCharacterByName(args.name);
+                }
+            }
+        },
         getCharacterServerList() {
             $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
-                for ( i = 0; i < data.characters.length; i++) {
+                for (let i = 0; i < data.characters.length; i++) {
                     getCharacterByURI(data.characters[i].uri);
                 }
             });
         },
-
+        addCharacterToMongo(data) {
+            data.time = client.Date();
+            data.user = GMCP.Status.name;
+            nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});
+            nexGui.cdb.players[data.name] = data;
+            nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
+        },
         getCharacterByURI(uri) {
             $.getJSON( uri, function( data ) {
-                data.time = client.Date();
-                data.user = GMCP.Status.name;
-                nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true})
+                nexGui.cdb.addCharacterToMongo(data);
             });
         },
         
         getCharacterByName(name) {
             $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", function ( data ) {
-                data.time = client.Date();
-                data.user = GMCP.Status.name;
-                nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});
+                nexGui.cdb.addCharacterToMongo(data);
             })
               .fail(function() {
-
+                console.log(`nexGui.cdb.getCharacterByName(${name}) failed.`)
               });
         },
     },
 
     mongo: {
-        entries: [],
         collect() {
+            /*
             // Get all denizens in the current room
             let roomDenizens = GMCP.Char.Items.List.items.filter(x => x.attrib == 'm' && !this.ignoreList.some(rx => rx.test(x.name)));// || x.attrib == 'mx');
             let newDenizens = [];
@@ -1181,6 +1216,7 @@ var nexGui = {
                 denizenUpdate.room.push(GMCP.Room.Info.num);
                 this.db.updateOne({id:denizenUpdate.id}, {$set:{room:denizenUpdate.room}})
             }   
+            */
         },
         async startUp() {
             console.log('Mongo startup called');
@@ -1196,10 +1232,15 @@ var nexGui = {
             this.user = await this.app.logIn(this.credentials)
             this.user.id === this.app.currentUser.id;
             this.mongodb = this.app.currentUser.mongoClient("mongodb-atlas");
-            this.db = this.mongodb.db('nexGui').collection('characters')
-            this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
+            this.db = this.mongodb.db('nexCDB').collection('characters')
+            //this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
+            let entries = await this.db.find({}, {projection: {_id:0}});
+            entries.forEach(e=>{
+                nexGui.cdb.players[e.name]=e;
+                nexGui.cdb.players[e.name].regex=new RegExp('\\b'+e.name+'\\b', 'g');
+            });
             console.log('MongoDB loaded');
-            nexMap.display.notice(`Denizen database loaded with ${this.entries.length} NPC entries.`);
+            nexGui.notice(`Player database loaded with ${this.entries.length} entries.`);
         },
         ignoreList: [
             /a dervish/,

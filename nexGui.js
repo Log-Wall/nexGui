@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.0',
+    version: '0.2.1',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -302,7 +302,7 @@ var nexGui = {
         client.redraw_interface();
 
         nexGui.room.layout();
-        nexGui.bash.layout();
+        nexGui.stats.layout();
         nexGui.party.layout();
         nexGui.pvp.layout();
         nexGui.timer.layout();
@@ -358,6 +358,30 @@ var nexGui = {
             }
         }
         //nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
+
+        this.restoreEvents();
+        this.layout();
+        client.send_direct('pwho');
+        client.send_direct('enemies');
+        client.send_direct('allies');
+        client.send_direct('def');
+        client.send_direct('ql');
+        this.notice(`GUI version ${this.version} loaded and ready for use.`);
+    },
+    restoreEvents() {
+        nexSys.eventStream.removeListener('Char.Items.List', 'nexGuiRoomAddAll');
+        nexSys.eventStream.removeListener('Char.Items.Add', 'nexGuiRoomAdd');
+        nexSys.eventStream.removeListener('Char.Items.Remove', 'nexGuiRoomRemove');
+        nexSys.eventStream.removeListener('Room.Players', 'nexGuiRoomPlayers');
+        nexSys.eventStream.removeListener('Room.AddPlayer', 'nexGuiAddPlayer');
+        nexSys.eventStream.removeListener('Room.RemovePlayer', 'nexGuiRemovePlayer');
+        nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiDefenceAdd');
+        nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiDefenceRemove');
+        nexSys.eventStream.removeListener('Char.Defences.List', 'nexGuiDefences');
+        nexSys.eventStream.removeListener('IRE.Target.Info', 'nexGuiTargetInfo');
+        nexSys.eventStream.removeListener('Char.Status', 'nexGuiCharStatus');       
+        nexSys.eventStream.removeListener('IRE.Misc.Achievement', 'nexGuiMiscAchievement');
+        nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
 
         // Populate nexGUI GMCP events
         let nexGuiRoomAddAll = function(args) {
@@ -417,16 +441,16 @@ var nexGui = {
         nexSys.eventStream.registerEvent('IRE.Target.Info', nexGuiTargetInfo);
 
         let nexGuiCharStatus = function(args) {
-            nexGui.bash.update();
+            nexGui.stats.update();
         }  
         nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
 
         let nexGuiMiscAchievement = function(args) {
             if (args?.name == 'TotalCreaturesKilled') {
-                nexGui.bash.sessionCount++;
-                nexGui.bash.instanceCount++;
+                nexGui.stats.sessionCount++;
+                nexGui.stats.instanceCount++;
             }
-            nexGui.bash.update();
+            nexGui.stats.update();
         }       
         nexSys.eventStream.registerEvent('IRE.Misc.Achievement', nexGuiMiscAchievement);
                 
@@ -435,14 +459,13 @@ var nexGui = {
         }
         nexSys.eventStream.registerEvent('Comm.Channel.Players', channelPlayersMongo);
         // $('#character_module_class').css('opacity', '15%')
-        this.layout();
-        client.send_direct('pwho');
-        client.send_direct('enemies');
-        client.send_direct('allies');
-        client.send_direct('def');
-        client.send_direct('ql');
-        this.notice(`GUI version ${this.version} loaded and ready for use.`);
     },   
+    resize(left, middle, right) {
+        find_client_layout_element('box_5').weight=left;
+        find_client_layout_element('box_3').weight=middle;
+        find_client_layout_element('box_2').weight=(1-(left+right));
+        client.redraw_interface();
+    },
 
     room: {
         displayID: true,
@@ -539,7 +562,7 @@ var nexGui = {
                     this.addGuard(npc);
                     return;
                 }
-                let entry = $('<tr></tr>', {id: `npc-${npc.id}`});
+                let entry = $('<tr></tr>', {id: `npc-${npc.id}`}).css({'font-size':this.size});
                 $('<td></td>', {style:`padding: 0px 5px 0px 2px;color:${this.idColor}`}).text(nexGui.room.displayID?npc.id:"").appendTo(entry);
                 $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).text(npc.name).appendTo(entry);
                 entry.on('click', (e) => {
@@ -579,7 +602,7 @@ var nexGui = {
             nameColor: 'white',
             location: '#tbl_2h1v1a',
             add(item) {
-                let entry = $('<tr></tr>', {id: `item-${item.id}`});
+                let entry = $('<tr></tr>', {id: `item-${item.id}`}).css({'font-size':this.size});;
                 $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
                 $('<td></td>', {style:`color:${nexGui.colors.room[item.id]||nexGui.colors.room[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
                 entry.appendTo('#room_item_table');
@@ -601,7 +624,8 @@ var nexGui = {
                 let entry = $('<div></div>', {id: `player-${player}`, class:`nexGui_room-player${GMCP.Target == player ? ' nexGui_room-target' : ''}`, player:player})
                     .css({
                         color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
-                        margin: '0px 10px 0px 0px'
+                        margin: '0px 10px 0px 0px',
+                        'font-size': this.size
                     })
                     .text(player)
                 
@@ -630,7 +654,7 @@ var nexGui = {
                 let t = $('<table></table>').appendTo(d);
                 let k = Object.keys(c);
                 for (let i = 0; i < k.length; i++) {
-                    if (k == 'time') {break;}
+                    if (k[i] == 'time') {break;}
                     let r = $('<tr></tr>');
                     $('<td></td>').text(`${k[i]}: `).appendTo(r);
                     $('<td></td>').text(`${c[k[i]]}`).appendTo(r);
@@ -751,7 +775,7 @@ var nexGui = {
         }
     },
 
-    bash: {
+    stats: {
         location: '#tbl_2h4a',
         instanceCount: 0,
         sessionCount: 0,
@@ -769,18 +793,18 @@ var nexGui = {
             {
                 id: 'instanceKills',
                 name: 'Total Kills', 
-                value: () => {return  nexGui.bash.instanceCount}
+                value: () => {return  nexGui.stats.instanceCount}
             },
             {
                 id: 'instanceGold',
                 name: 'Total Gold', 
-                value: () => {return (GMCP.Status.gold - nexGui.bash.instanceGold).toLocaleString()}
+                value: () => {return (GMCP.Status.gold - nexGui.stats.instanceGold).toLocaleString()}
             },
             {
                 id: 'instanceTime',
                 name: 'Time', 
                 value: () => {
-                    let t = (performance.now() - nexGui.bash.instanceTime) / 1000;
+                    let t = (performance.now() - nexGui.stats.instanceTime) / 1000;
                     let m = parseInt(t / 60);
                     let s = parseInt(t % 60);
                     return `${m > 1 ? m+"m" : ''} ${s}s`
@@ -790,9 +814,9 @@ var nexGui = {
                 id: 'instanceGoldPerHr',
                 name: 'Gold/Hr', 
                 value: () => {
-                    let t = (performance.now() - nexGui.bash.instanceTime) / 1000;
+                    let t = (performance.now() - nexGui.stats.instanceTime) / 1000;
                     let h = (t / 3600);
-                    let gh = (GMCP.Status.gold - nexGui.bash.instanceGold) / h;
+                    let gh = (GMCP.Status.gold - nexGui.stats.instanceGold) / h;
                     return parseInt(gh).toLocaleString()
                 }
             },
@@ -801,18 +825,18 @@ var nexGui = {
             {
                 id: 'sessionKills',
                 name: 'Total Kills', 
-                value: () => {return  nexGui.bash.sessionCount}
+                value: () => {return  nexGui.stats.sessionCount}
             },
             {
                 id: 'sessionGold',
                 name: 'Total Gold', 
-                value: () => {return (GMCP.Status.gold - nexGui.bash.sessionGold).toLocaleString()}
+                value: () => {return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()}
             },
             {
                 id: 'sessionTime',
                 name: 'Time', 
                 value: () => {
-                    let t = (performance.now() - nexGui.bash.sessionTime) / 1000;
+                    let t = (performance.now() - nexGui.stats.sessionTime) / 1000;
                     let h = parseInt(t / 3600);                
                     let m = parseInt((t % 3600) / 60);
                     let s = parseInt(t % 60);
@@ -823,9 +847,9 @@ var nexGui = {
                 id: 'sessionGoldPerHr',
                 name: 'Gold/Hr', 
                 value: () => {
-                    let t = (performance.now() - nexGui.bash.sessionTime) / 1000;
+                    let t = (performance.now() - nexGui.stats.sessionTime) / 1000;
                     let h = (t / 3600);
-                    let gh = (GMCP.Status.gold - nexGui.bash.sessionGold) / h;
+                    let gh = (GMCP.Status.gold - nexGui.stats.sessionGold) / h;
                     return parseInt(gh).toLocaleString()
                 }
             },
@@ -833,14 +857,14 @@ var nexGui = {
                 id: 'sessionXP',
                 name: 'Total XP', 
                 value: () => {
-                    return `${parseInt(GMCP.Status.xp.replace('%','')) - nexGui.bash.sessionXP}%`;
+                    return `${parseInt(GMCP.Status.xp.replace('%','')) - nexGui.stats.sessionXP}%`;
                 }
             },
             {
                 id: 'sessionDeaths',
                 name: 'Deaths', 
                 value: () => {
-                    return nexGui.bash.sessionDeaths;
+                    return nexGui.stats.sessionDeaths;
                 }
             },
         ],
@@ -852,65 +876,65 @@ var nexGui = {
             this.update();
         },
         layout() {
-            $('#basherDisplay').remove();
-            let basherDisplay = $('<div></div>', {id: 'basherDisplay', style:`display:flex;justify-content:space-evenly;font-size:${this.font_size}`}).appendTo(nexGui.bash.location);
-            let basherLeft = $('<div></div>', {id: 'basherLeft'}).appendTo(basherDisplay);
-            let basherRight = $('<div></div>', {id: 'basherRight'}).appendTo(basherDisplay);
+            $('#statsDisplay').remove();
+            let statsDisplay = $('<div></div>', {id: 'statsDisplay', style:`display:flex;justify-content:space-evenly;font-size:${this.font_size}`}).appendTo(nexGui.stats.location);
+            let statsLeft = $('<div></div>', {id: 'statsLeft'}).appendTo(statsDisplay);
+            let statsRight = $('<div></div>', {id: 'statsRight'}).appendTo(statsDisplay);
     
-            $('#bashing_instance_table').remove();
+            $('#stats_instance_table').remove();
              $('<p></p>')
                 .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Instance Stats"))
-                .appendTo('#basherLeft');
+                .appendTo('#statsLeft');
             $("<table></table>", {
-                id: "bashing_instance_table",
+                id: "stats_instance_table",
             }).css({
-                'font-size':nexGui.bash.font_size,
+                'font-size':nexGui.stats.font_size,
                 'text-align':'left',
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'
-            }).appendTo(basherLeft);
-            $('<th></th>', {style:"width:auto"}).appendTo('#bashing_instance_table');
-            $('<th></th>', {style:"width:auto"}).appendTo('#bashing_instance_table');
-            $('#bashing_instance_table').appendTo('#basherLeft');
+            }).appendTo(statsLeft);
+            $('<th></th>', {style:"width:auto"}).appendTo('#stats_instance_table');
+            $('<th></th>', {style:"width:auto"}).appendTo('#stats_instance_table');
+            $('#stats_instance_table').appendTo('#statsLeft');
             
             $('<input></input>', {type:'submit', value:'Reset'})
-                .on('click', ()=>{nexGui.bash.reset()}).appendTo('#basherLeft');
+                .on('click', ()=>{nexGui.stats.reset()}).appendTo('#statsLeft');
             
-            $('#bashing_session_table').remove();
+            $('#stats_session_table').remove();
              $('<p></p>')
                 .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Session Stats"))
-                .appendTo('#basherRight');
+                .appendTo('#statsRight');
             $("<table></table>", {
-                id: "bashing_session_table",
+                id: "stats_session_table",
             }).css({
-                'font-size':nexGui.bash.font_size,
+                'font-size':nexGui.stats.font_size,
                 'text-align':'left',
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'
-            }).appendTo(basherLeft);
-            $('<th></th>', {style:"width:auto"}).appendTo('#bashing_session_table');
-            $('<th></th>', {style:"width:auto"}).appendTo('#bashing_session_table');
-            $('#bashing_session_table').appendTo('#basherRight');
+            }).appendTo(statsLeft);
+            $('<th></th>', {style:"width:auto"}).appendTo('#stats_session_table');
+            $('<th></th>', {style:"width:auto"}).appendTo('#stats_session_table');
+            $('#stats_session_table').appendTo('#statsRight');
             
             this.update();
             
         },
         update() {
-            $('#bashing_instance_table tr').remove();
-            $('#bashing_session_table tr').remove();
+            $('#stats_instance_table tr').remove();
+            $('#stats_session_table tr').remove();
             this.instanceEntries.forEach(e => {
-                let entry = $('<tr></tr>', {id: `basher_${e.id}`});
+                let entry = $('<tr></tr>', {id: `stats_${e.id}`});
                 $('<td></td>', {}).text(`${e.name}:`).appendTo(entry);
                 $('<td></td>', {}).text(`${e.value()}`).appendTo(entry);
-                entry.appendTo('#bashing_instance_table');
+                entry.appendTo('#stats_instance_table');
             });
             this.sessionEntries.forEach(e => {
-                let entry = $('<tr></tr>', {id: `basher_${e.id}`});
+                let entry = $('<tr></tr>', {id: `stats_${e.id}`});
                 $('<td></td>', {}).text(`${e.name}:`).appendTo(entry);
                 $('<td></td>', {}).text(`${e.value()}`).appendTo(entry);
-                entry.appendTo('#bashing_session_table');
+                entry.appendTo('#stats_session_table');
             });
         }
     },
@@ -947,10 +971,28 @@ var nexGui = {
                 color: 'white'
            }).text(who)
         },
-        actionWhat() {
+        actionWhat(what) {
+            let res = $('<div></div>')
+            .css({
+                display:'table-cell',
+                 width: '35%'
+            })
+             .append($('<span></span>', {style:"color:white"}).text('['))
+             .append($('<span></span>', {style:"color:orange"}).text(what))
+             .append($('<span></span>', {style:"color:white"}).text(`]`));
+            
+            /*if()
 
+            
+             .append($('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`))
+
+             .append($('<span></span>', {style:"color:white"}).text('('))
+             .append($('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?(GMCP.TargetHP_Change)+"%":''}`))
+             .append($('<span></span>', {style:"color:white"}).text(')'))
+*/
+             return res;
         },
-        actionSubject() {
+        actionSubject(subject) {
             return $('<div></div>').css({
                 display:'table-cell',
                  width: '35%'
@@ -965,8 +1007,8 @@ var nexGui = {
            });
            let row = $("<div></div>").css({
                 display:'table-row'
-            })
-                 .appendTo(tab)
+            }).appendTo(tab)
+
             $("<div></div>").css({
                 display:'table-cell',
                     width: '10%'
@@ -1134,7 +1176,6 @@ var nexGui = {
         location: '#tbl_5b',
         font_size: '11px',
         _timer: {},
-        timers: {},
         _start() {
             this._timer = setInterval(nexGui.timer._callBack, 1000);
         },
@@ -1152,7 +1193,7 @@ var nexGui = {
                     .append($('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(label))
                     .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px"}).text(0))
                     .appendTo('#nexTimerTable');
-            this.timers[id] = {
+            this[id] = {
                 id: id,
                 duration: duration+1,
                 start() {$(`#${id}Timer`).text(this.duration)}
@@ -1278,6 +1319,7 @@ var nexGui = {
         }
     
     },
+
     cdb: {
         players: {},
         gmcpChannelPlayers(args) {
@@ -1316,6 +1358,8 @@ var nexGui = {
               });
         },
         updateCity(name, city) {
+            name = name.toProperCase();
+            city = city.toLowerCase();
             if (nexGui.colors.city[city] && nexGui.cdb.players[name]) {
                 let update = nexGui.cdb.players[name];
                 update.city = city;

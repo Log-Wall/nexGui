@@ -126,7 +126,7 @@ client.generate_text_block = function(lines) {
         timestamp = client.getTimeMS();
     else
         timestamp = client.getTimeNoMS();
-    let cl = "timestamp mono no_out";
+    let cl = show_timestamps ? "timestamp mono" : "timestamp mono no_out";
     timestamp = "<span class=\"" + cl + "\">" + timestamp + "&nbsp;</span>";
 
     let res = '';
@@ -1057,4 +1057,28 @@ client.handle_GMCP = function(data)
         run_function("onGMCP", {"gmcp_method":gmcp_method, "gmcp_args":gmcp_args}, 'ALL');
         if (gmcp_fire_event) client.handle_event('GMCP', gmcp_method, gmcp_event_param);
     }
+}
+
+client.getTime=function(format)
+{
+    let today=new Date();
+    let res = '';
+    if (format.indexOf('h') > -1) {
+        let h=checkTime(today.getHours());
+        res += h + ":";
+    }
+    if (format.indexOf('m') > -1) {
+        let m=checkTime(today.getMinutes());
+        res += m + ":";
+    }
+    if (format.indexOf('s') > -1) {
+        let s=checkTime(today.getSeconds());
+        res += s;
+    }
+    if (format.indexOf('ms') > -1) {
+        let ms = checkTimeMS(today.getMilliseconds());
+        res += ":" + ms;
+    }
+
+    return res;
 }

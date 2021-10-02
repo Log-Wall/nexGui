@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.7',
+    version: '0.1.8',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -1157,15 +1157,15 @@ var nexGui = {
         players: {},
         gmcpChannelPlayers(args) {
             for(let i = 0; i < args.length; i++) {
-                if (!this.players[args.name]) {
-                    this.getCharacterByName(args.name);
+                if (!this.players[args[i].name]) {
+                    this.getCharacterByName(args[i].name);
                 }
             }
         },
         getCharacterServerList() {
             $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
                 for (let i = 0; i < data.characters.length; i++) {
-                    getCharacterByURI(data.characters[i].uri);
+                    nexGui.cdb.getCharacterByURI(data.characters[i].uri);
                 }
             });
         },
@@ -1252,6 +1252,7 @@ var nexGui = {
                 nexGui.cdb.players[e.name]=e;
                 nexGui.cdb.players[e.name].regex=new RegExp('\\b'+e.name+'\\b', 'g');
             });
+            nexGui.cdb.getCharacterServerList();
             console.log('MongoDB loaded');
             nexGui.notice(`Player database loaded with ${entries.length} entries.`);
         },

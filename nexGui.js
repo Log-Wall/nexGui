@@ -1,9 +1,21 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.5',
+    version: '0.1.6',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
+    colors = {
+        city: {
+            "cyrene":"#4078a5",
+            "targossas":"#b3b300",
+            "eleusis":"#28a428",
+            "mhaldor":"red",
+            "hashan":"#8a2db9",
+            "ashtan":"#cc0066",
+            "(none)":"gray",
+            "(hidden)":"gray"
+        }
+    },
     inject(rule) {
         if (!$('#client_nexgui-rules').length) {
             $('body').append('<div id="client_nexgui-rules"></div>')
@@ -335,10 +347,11 @@ var nexGui = {
         allies: [],
         colors: {},
         highlightNames(txt) {
-            let names = Object.keys(cdb.regex);
+            let names = Object.keys(nexGui.cdb.players);
             for(let i = 0; i < names.length; i++) {
-                if (txt.indexOf(names[i]) != -1 && typeof cdb.characterServerList[names[i]] != 'undefined') {
-                    txt = txt.replace(cdb.regex[names[i]], `<span style="color:${cdb.city_colours[cdb.characterServerList[names[i]].city]}">${names[i]}</span>`)
+                if (txt.indexOf(names[i]) != -1) {
+                    let name = nexGui.cdb.players[names[i]];
+                    txt = txt.replace(name.regex, `<span style="color:${nexGui.colors.city[name.city]}">${names[i]}</span>`)
                 }
             }
             return txt;
@@ -440,7 +453,7 @@ var nexGui = {
                 }
                 let entry = $('<div></div>', {id: `player-${player}`, class:`nexGui_room-player${GMCP.Target == player ? ' nexGui_room-target' : ''}`, player:player})
                     .css({
-                        color: `${cdb.city_colours[cdb.characterServerList[player].city]||this.nameColor}`,
+                        color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
                         margin: '0px 10px 0px 0px'
                     })
                     .text(player)
@@ -1240,7 +1253,7 @@ var nexGui = {
                 nexGui.cdb.players[e.name].regex=new RegExp('\\b'+e.name+'\\b', 'g');
             });
             console.log('MongoDB loaded');
-            nexGui.notice(`Player database loaded with ${this.entries.length} entries.`);
+            nexGui.notice(`Player database loaded with ${entries.length} entries.`);
         },
         ignoreList: [
             /a dervish/,

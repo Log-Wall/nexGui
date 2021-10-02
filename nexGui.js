@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.1.8',
+    version: '0.1.9',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -314,6 +314,7 @@ var nexGui = {
         send_direct('enemies');
         send_direct('allies');
         send_direct('def');
+        send_direct('ql');
         this.notice(`GUI version ${this.version} loaded and ready for use.`);
     },
     notice(txt, html = false) {
@@ -1076,7 +1077,8 @@ var nexGui = {
                 bottom: 0,
                 left: 0,
                 width: 'auto',
-                margin: '5px'
+                margin: '5px',
+                height: 'auto'
             });
             this.start();
         },
@@ -1247,7 +1249,7 @@ var nexGui = {
             this.mongodb = this.app.currentUser.mongoClient("mongodb-atlas");
             this.db = this.mongodb.db('nexCDB').collection('characters')
             //this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
-            let entries = await this.db.find({}, {projection: {_id:0}});
+            let entries = await this.db.find({}, {projection: {_id:0, user: 0}});
             entries.forEach(e=>{
                 nexGui.cdb.players[e.name]=e;
                 nexGui.cdb.players[e.name].regex=new RegExp('\\b'+e.name+'\\b', 'g');

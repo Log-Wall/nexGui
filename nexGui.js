@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.5',
+    version: '0.2.6',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -459,21 +459,9 @@ var nexGui = {
             nexGui.cdb.gmcpChannelPlayers(args);
         }
         nexSys.eventStream.registerEvent('Comm.Channel.Players', channelPlayersMongo);
+
         let nexGuiClassBalance = function(args) {
             nexGui.classBalanceUpdate(args);
-        }
-        nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
-        
-        let nexGuiClassBalance = function(args) {
-            if (typeof args.charstats === 'undefined') {return;}
-            if (args.charstats.indexOf(`${nexGui.classBalanceType}: Yes`) != -1) {
-                $('#character_module_class').css('opacity', '100%')
-                return
-            }
-            if (args.charstats.indexOf(`${nexGui.classBalanceType}: No`) != -1) {
-                $('#character_module_class').css('opacity', '15%')
-                return
-            }
         }
         nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
     },   
@@ -484,7 +472,15 @@ var nexGui = {
         client.redraw_interface();
     },
     classBalanceUpdate(args) {
-
+        if (typeof args.charstats === 'undefined') {return;}
+        if (args.charstats.indexOf(`${nexGui.classBalanceType}: Yes`) != -1) {
+            $('#character_module_class').css('opacity', '100%')
+            return
+        }
+        if (args.charstats.indexOf(`${nexGui.classBalanceType}: No`) != -1) {
+            $('#character_module_class').css('opacity', '15%')
+            return
+        }
     },
 
     room: {

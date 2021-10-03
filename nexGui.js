@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.4',
+    version: '0.2.5',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -382,6 +382,7 @@ var nexGui = {
         nexSys.eventStream.removeListener('Char.Status', 'nexGuiCharStatus');       
         nexSys.eventStream.removeListener('IRE.Misc.Achievement', 'nexGuiMiscAchievement');
         nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
+        nexSys.eventStream.removeListener('Char.Vitals', 'nexGuiClassBalance');
 
         // Populate nexGUI GMCP events
         let nexGuiRoomAddAll = function(args) {
@@ -458,13 +459,32 @@ var nexGui = {
             nexGui.cdb.gmcpChannelPlayers(args);
         }
         nexSys.eventStream.registerEvent('Comm.Channel.Players', channelPlayersMongo);
-        // $('#character_module_class').css('opacity', '15%')
+        let nexGuiClassBalance = function(args) {
+            nexGui.classBalanceUpdate(args);
+        }
+        nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
+        
+        let nexGuiClassBalance = function(args) {
+            if (typeof args.charstats === 'undefined') {return;}
+            if (args.charstats.indexOf(`${nexGui.classBalanceType}: Yes`) != -1) {
+                $('#character_module_class').css('opacity', '100%')
+                return
+            }
+            if (args.charstats.indexOf(`${nexGui.classBalanceType}: No`) != -1) {
+                $('#character_module_class').css('opacity', '15%')
+                return
+            }
+        }
+        nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
     },   
     resize(left, middle, right) {
         find_client_layout_element('box_5').weight=left;
         find_client_layout_element('box_3').weight=middle;
         find_client_layout_element('box_2').weight=(1-(left+right));
         client.redraw_interface();
+    },
+    classBalanceUpdate(args) {
+
     },
 
     room: {

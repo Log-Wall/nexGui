@@ -5,6 +5,14 @@ var nexGui = {
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
+        highlightNames(txt) {
+            let players = Object.keys(nexGui.cdb.players);
+            for (let i = 0; i < players.length; i++) {
+                let colour = nexGui.colors.city[nexGui.cdb.players[players[i]].city]; 
+                txt = txt.replace(nexGui.cdb.players[players[i]].regex, `<span style="color:${colour}">${players[i]}</span>`);
+            }
+            return txt;
+        },
         room: {},
         city: {
             "(hidden)": "gray",
@@ -657,13 +665,13 @@ var nexGui = {
                 if($(`player-${player}`).length > 0) {
                     $(`player-${player}`).remove();
                 }
-                let entry = $('<div></div>', {id: `player-${player}`, class:`nexGui_room-player${GMCP.Target == player ? ' nexGui_room-target' : ''}`, player:player})
+                let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : ''}`})
                     .css({
                         color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
                         margin: '0px 10px 0px 0px',
                         'font-size': this.size
                     })
-                    .append($('<span></span>').text(player))
+                $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span></span>', {style:'color:red'}).text('(').prependTo(entry);
@@ -691,7 +699,8 @@ var nexGui = {
                 }
             
                 d.dialog({
-                    title: player
+                    title: player,
+                    position: {my: "right-10 center", at: "left center", of: nexGui.room.players.location}
                 });
             }
         }         
@@ -969,6 +978,7 @@ var nexGui = {
     },
 
     msg: {
+        brief: false,
         crits: [
         ['a CRITICAL', '2x'],
         ['CRUSHING', '4x'],
@@ -1018,7 +1028,44 @@ var nexGui = {
                 color: color
            }).text(who)
         },
+        // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
+        // Rewrote this function to replicate the evenly spaced out display with divs.
+        actionMsg(who = '', what = '', subject = '') {
+            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}           
+            let tab = $("<div></div>", {class: "mono"}).css({
+                display:'inline-table',
+               'width': 'calc(100% - 14ch)',
+               'text-align': 'left',
+               'table-layout': 'fixed'
+            });
+            let row = $("<div></div>").css({
+                display:'table-row'
+            }).appendTo(tab)
+
+            $("<div></div>").css({
+                display:'table-cell',
+                    width: '5%'
+            }).text('').appendTo(row);
+            this.formatWho(who).appendTo(row)
+
+            $('<div></div>').css({
+                display:'table-cell',
+                    width: '30%'
+            }).text(what).appendTo(row);
+
+            $("<div></div>").css({
+                display:'table-cell'
+            }).append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
+
+            nexPrint(tab[0].outerHTML);  
+        },
         attackMsg(who, what, subject) {
+
+            if(who == 'Self' && nexGui.msg.brief == true) {
+                this.attackMsgBrief(what, subject);
+                return;
+            }
+
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',
                'width': 'calc(100% - 14ch)',
@@ -1081,36 +1128,50 @@ var nexGui = {
 
             nexPrint(tab[0].outerHTML);  
         },
-        // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
-        // Rewrote this function to replicate the evenly spaced out display with divs.
-        actionMsg(who = '', what = '', subject = '') {
-            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}           
+        attackMsgBrief(what, subject) {
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',
-               'width': 'calc(100% - 14ch)',
+               'width': 'calc(100%)',
                'text-align': 'left',
-               'table-layout': 'fixed'
-            });
-            let row = $("<div></div>").css({
+               'table-layout': 'fixed',
+                'font-size': '11px'
+           });
+           let row = $("<div></div>").css({
                 display:'table-row'
             }).appendTo(tab)
-
-            $("<div></div>").css({
+            $('<div></div>', {class: "timestamp"}).css({display:'table-cell',color:'grey'}).text(client.getTime('ms')).appendTo(row);
+            let cellWhat = $('<div></div>').css({
                 display:'table-cell',
-                    width: '5%'
-            }).text('').appendTo(row);
-            this.formatWho(who).appendTo(row)
+                    width: '50%'
+                }).appendTo(row);
+            $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
+            $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
 
-            $('<div></div>').css({
-                display:'table-cell',
-                    width: '30%'
-            }).text(what).appendTo(row);
+            // Is the target a player?
+            if(!nexGui.cdb.players[subject]) {
+                // If the target is not a player then the attack could possibly crit.
+                $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
 
-            $("<div></div>").css({
-                display:'table-cell'
-            }).append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
+                // if the target matches our target we should know how much damage the attack did and the health of the target.
+                if (subject == GMCP.TargetText) {                 
+                    // Add the subject portion of the line.
+                    let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
+                    let cellSubject = $("<div></div>").css({
+                        display:'table-cell'
+                    })
+                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
+                    cellSubject.appendTo(row)                   
+                } else {
+                    $("<div></div>").css({
+                display:'table-row'
+            }).text('').appendTo(row)
+                }
+            }
 
-            nexPrint(tab[0].outerHTML);  
+            nexGui.stream.write('#tbl_2h3a', tab);  
         }
     },
 
@@ -1288,8 +1349,11 @@ var nexGui = {
             for(let i = index+1; i < 25; i++) {
                 let entry = $('<div></div>', {class: 'nexGui_feed'}).css({'font-size':this.font_size})
                 $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
-                $('<span></span>').text(data[i].description).appendTo(entry)
+                $('<span></span>').text(nexGui.colors.highlightNames(data[i].description)).appendTo(entry)
                 entry.appendTo(this.location);
+                if ($(this.location).children().length > 100) {
+                    $(this.location).children()[0].remove()
+                }
             }
             $(this.location).animate({ scrollTop: 9999 }, "fast");
             this.lastEntry = data[24];
@@ -1297,7 +1361,14 @@ var nexGui = {
     },
 
     stream: {
-
+        msgLimit: 100,
+        write(location, msg) {
+            $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(entry);
+            msg.appendTo(location);
+            if ($(location).children().length > this.msgLimit) {
+                $(location).children()[0].remove()
+            }
+        }
     },
 
     target: {

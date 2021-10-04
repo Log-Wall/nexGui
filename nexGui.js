@@ -1,10 +1,11 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.6',
+    version: '0.2.7',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
+        room: {},
         city: {
             "(hidden)": "gray",
             "(none)": "gray",
@@ -14,6 +15,23 @@ var nexGui = {
             hashan: "#808000",
             mhaldor: "#ff0000",
             targossas: "#ffffff"
+        },
+        attacks: {
+            warp:'orange',
+            incantation:'orange',
+            gut:'orange',
+            frostwave:'orange',
+            dragonchill:'orange',
+            ague:'orange',
+            tailsmash:'orange',
+            override:'orange',
+            garrote:'orange',
+            bleed:'orange',
+            doubleslash:'orange',
+            jab:'orange'
+        },
+        actions: {
+
         }
     },
     inject(rule) {
@@ -293,9 +311,9 @@ var nexGui = {
         $('#character_module_avatar').remove();
         $('#bottom_buttons').remove();
         $('#box_2').insertAfter('#box_3');
-        find_client_layout_element('box_5').weight=0.10;
-        find_client_layout_element('box_2').weight=0.40;
-        find_client_layout_element('box_3').weight=0.50;
+        find_client_layout_element('box_5').weight=0.08;
+        find_client_layout_element('box_3').weight=0.47;
+        find_client_layout_element('box_2').weight=0.45;  
         /***********************************************************************
             Run update to fit all windows to new sizes
          ***********************************************************************/
@@ -465,10 +483,12 @@ var nexGui = {
         }
         nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
     },   
-    resize(left, middle, right) {
+    resize(left, middle) {
+        left = left < 1 ? left : left/100;
+        middle = middle < 1 ? middle : middle/100;
         find_client_layout_element('box_5').weight=left;
         find_client_layout_element('box_3').weight=middle;
-        find_client_layout_element('box_2').weight=(1-(left+right));
+        find_client_layout_element('box_2').weight=(1-(left+middle));
         client.redraw_interface();
     },
     classBalanceUpdate(args) {
@@ -643,7 +663,7 @@ var nexGui = {
                         margin: '0px 10px 0px 0px',
                         'font-size': this.size
                     })
-                    .text(player)
+                    .append($('<span></span>').text(player))
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span></span>', {style:"padding:0px 5px 0px 0px"})
@@ -652,7 +672,7 @@ var nexGui = {
                         .append($('<span></span>', {style:'color:white'}).text(']'))
                         .prependTo(entry);
                 }
-                if (nexGui.room.enemies.indexOf(player) != -1) {
+                if (nexGui.room.allies.indexOf(player) != -1) {
                     $('<span></span>', {style:"padding:0px 5px 0px 0px"})
                         .append($('<span></span>', {style:'color:white'}).text('['))
                         .append($('<span></span>', {style:'color:brightGreen'}).text('A'))
@@ -672,7 +692,7 @@ var nexGui = {
                 for (let i = 0; i < k.length; i++) {
                     if (k[i] == 'time') {break;}
                     let r = $('<tr></tr>');
-                    $('<td></td>').text(`${k[i]}: `).appendTo(r);
+                    $('<td></td>').text(`${k[i].toProperCase()}: `).appendTo(r);
                     $('<td></td>').text(`${c[k[i]]}`).appendTo(r);
                     r.appendTo(t)
                 }
@@ -963,6 +983,21 @@ var nexGui = {
         ['ANNIHILATINGLY', '16x'],
         ['WORLD', '32x']
         ],
+        percentColor(percent) {
+            let hpcolor = '';
+            if (percent > 75) {
+                hpcolor = 'limegreen';
+            } else if (percent > 50) {
+                hpcolor = 'yellow';
+            } else if (percent > 20) {
+                hpcolor = 'orange';
+            } else if (percent >= 0) {
+                hpcolor = 'red';
+            } else {
+                hpcolor = 'white';
+            }
+            return hpcolor;
+        },
         checkCrit() {
             let dmg = 'Hit';
             for(let i = 0; i < this.crits.length; i++) {
@@ -980,41 +1015,17 @@ var nexGui = {
             }
             return dmg;
         },
-        actionWho(who) {
+        formatWho(who) {
+            let color = nexGui.cdb.players[who] ? nexGui.colors.city[nexGui.cdb.players[players[i]].city] : 'grey';
+            if (who == 'Self') {color = 'cyan'};
+
             return $("<div></div>").css({
                display:'table-cell',
                 width: '20%',
-                color: 'white'
+                color: color
            }).text(who)
         },
-        actionWhat(what) {
-            let res = $('<div></div>')
-            .css({
-                display:'table-cell',
-                 width: '35%'
-            })
-             .append($('<span></span>', {style:"color:white"}).text('['))
-             .append($('<span></span>', {style:"color:orange"}).text(what))
-             .append($('<span></span>', {style:"color:white"}).text(`]`));
-            
-            /*if()
-
-            
-             .append($('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`))
-
-             .append($('<span></span>', {style:"color:white"}).text('('))
-             .append($('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?(GMCP.TargetHP_Change)+"%":''}`))
-             .append($('<span></span>', {style:"color:white"}).text(')'))
-*/
-             return res;
-        },
-        actionSubject(subject) {
-            return $('<div></div>').css({
-                display:'table-cell',
-                 width: '35%'
-            })
-        },
-        actionMsg1(who, what, subject) {
+        attackMsg(who, what, subject) {
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',
                'width': 'calc(100% - 14ch)',
@@ -1029,76 +1040,84 @@ var nexGui = {
                 display:'table-cell',
                     width: '10%'
             }).text('').appendTo(row);
-            row.append(actionWho(who));
-            row.append(actionWhat(what));
-            row.append(actionSubject(subject));
+            this.formatWho(who).appendTo(row);
+            
+            let cellWhat = $('<div></div>').css({
+                display:'table-cell',
+                    width: '35%'
+                }).appendTo(row);
+            $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
+            $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
+                
+            
+            if (subject.toLowerCase() == 'you') {
+                $("<div></div>").css({
+                    display:'table-cell',
+                    color: 'cyan'
+                }).text('Self').appendTo(row);
+                nexPrint(tab[0].outerHTML); 
+                return;
+            }
 
+            // Is the target a player?
+            if(!nexGui.cdb.players[subject]) {
+                // If the target is not a player then the attack could possibly crit.
+                $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
+
+                // if the target matches our target we should know how much damage the attack did and the health of the target.
+                if (subject == GMCP.TargetText) {
+                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellWhat);
+                    $('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`).appendTo(cellWhat);
+                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellWhat);
+                    
+                    // Add the subject portion of the line.
+                    let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
+                    let cellSubject = $("<div></div>").css({
+                        display:'table-cell'
+                    })
+                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
+                    $('<span></span>', {style:'color:white'}).text(subject).appendTo(cellSubject);
+                    cellSubject.appendTo(row)                   
+                } else {
+                    this.formatWho(subject).css({width:'auto'}).appendTo(row)
+                }
+            }
+
+            nexPrint(tab[0].outerHTML);  
         },
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who, what, subject) {
-             let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
-             let hpcolor = '';
-             if (hpperc > 75) {
-                 hpcolor = 'limegreen';
-             } else if (hpperc > 50) {
-                 hpcolor = 'yellow';
-             } else if (hpperc > 20) {
-                 hpcolor = 'orange';
-             } else if (hpperc >= 0) {
-                 hpcolor = 'red';
-             } else {
-                 hpcolor = 'white';
-             }
-            
-             let tab = $("<div></div>", {class: "mono"}).css({
-                  display:'inline-table',
-                 'width': 'calc(100% - 14ch)',
-                 'text-align': 'left',
-                 'table-layout': 'fixed'
-             });
-             let row = $("<div></div>")
-                 .css({
-                    display:'table-row'
-                })
-                 .appendTo(tab)
-             $("<div></div>")
-                 .css({
-                    display:'table-cell',
-                     width: '10%'
-                })
-                 .text('')
-                 .appendTo(row)
-             $("<div></div>")
-                 .css({
-                    display:'table-cell',
-                     width: '20%',
-                     color: 'white'
-                })
-                 .text(who)
-                 .appendTo(row)
-             $('<div></div>')
-                .css({
-                    display:'table-cell',
-                     width: '35%'
-                })
-                 .append($('<span></span>', {style:"color:white"}).text('['))
-                 .append($('<span></span>', {style:"color:orange"}).text(what))
-                 .append($('<span></span>', {style:"color:white"}).text(`]:${this.checkCrit()}`))
-                 .append($('<span></span>', {style:"color:white"}).text('('))
-                 .append($('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`))
-                 .append($('<span></span>', {style:"color:white"}).text(')'))
-                 .appendTo(row);
-             $("<div></div>")
-                .css({
-                    display:'table-cell'
-                })
-                 .append($('<span></span>', {style:"color:white"}).text('('))
-                 .append($('<span></span>', {style:`color:${hpcolor}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`))
-                 .append($('<span></span>', {style:"color:white"}).text(')'))
-                 .append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
-    
-             nexPrint(tab[0].outerHTML);
+            if (nexGui.colors.attacks[what]) {this.attackMsg(who, what, subject)}           
+            let tab = $("<div></div>", {class: "mono"}).css({
+                display:'inline-table',
+               'width': 'calc(100% - 14ch)',
+               'text-align': 'left',
+               'table-layout': 'fixed'
+            });
+            let row = $("<div></div>").css({
+                display:'table-row'
+            }).appendTo(tab)
+
+            $("<div></div>").css({
+                display:'table-cell',
+                    width: '10%'
+            }).text('').appendTo(row);
+            this.formatWho(who).appendTo(row)
+
+            $('<div></div>').css({
+                display:'table-cell',
+                    width: '35%'
+            }).text(what).appendTo(row);
+
+            $("<div></div>").css({
+                display:'table-cell'
+            }).append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
+
+            nexPrint(tab[0].outerHTML);  
         }
     },
 
@@ -1275,13 +1294,17 @@ var nexGui = {
             if (index == 24) {return}
             for(let i = index+1; i < 25; i++) {
                 let entry = $('<div></div>', {class: 'nexGui_feed'}).css({'font-size':this.font_size})
-                $('<span></span>').css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
+                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
                 $('<span></span>').text(data[i].description).appendTo(entry)
                 entry.appendTo(this.location);
             }
             $(this.location).animate({ scrollTop: 9999 }, "fast");
             this.lastEntry = data[24];
         }
+    },
+
+    stream: {
+
     },
 
     target: {
@@ -1369,18 +1392,23 @@ var nexGui = {
             $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", function ( data ) {
                 nexGui.cdb.addCharacterToMongo(data);
             })
-              .fail(function() {
-                console.log(`nexGui.cdb.getCharacterByName(${name}) failed.`)
-              });
+            .fail(function() {
+                nexGui.mongo.db.deleteOne({'name':name})
+                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
+            });
         },
         updateCity(name, city) {
-            name = name.toProperCase();
             city = city.toLowerCase();
+            if (!nexGui.colors.city[city]) {nexPrint('Incorrect city string in update');return;}
+
+            name = name.toProperCase();
+            
             if (nexGui.colors.city[city] && nexGui.cdb.players[name]) {
                 nexGui.cdb.players[name].city = city;
                 let update = JSON.parse(JSON.stringify(nexGui.cdb.players[name]));                
                 delete update['regex'];              
                 nexGui.mongo.db.updateOne({'name':update.name}, update);
+                nexPrint(`Database updated ${name} to City ${city}`);
             }
         }
     },

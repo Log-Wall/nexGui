@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.7',
+    version: '0.2.8',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {
@@ -666,18 +666,11 @@ var nexGui = {
                     .append($('<span></span>').text(player))
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
-                    $('<span></span>', {style:"padding:0px 5px 0px 0px"})
-                        .append($('<span></span>', {style:'color:white'}).text('['))
-                        .append($('<span></span>', {style:'color:red'}).text('E'))
-                        .append($('<span></span>', {style:'color:white'}).text(']'))
-                        .prependTo(entry);
-                }
-                if (nexGui.room.allies.indexOf(player) != -1) {
-                    $('<span></span>', {style:"padding:0px 5px 0px 0px"})
-                        .append($('<span></span>', {style:'color:white'}).text('['))
-                        .append($('<span></span>', {style:'color:brightGreen'}).text('A'))
-                        .append($('<span></span>', {style:'color:white'}).text(']'))
-                        .prependTo(entry);
+                    $('<span></span>', {style:'color:red'}).text('(').prependTo(entry);
+                    $('<span></span>', {style:'color:red'}).text(')').appendTo(entry);
+                } else if (nexGui.room.allies.indexOf(player) != -1) {
+                    $('<span></span>', {style:'color:white'}).text('(').prependTo(entry);
+                    $('<span></span>', {style:'color:white'}).text(')').appendTo(entry);
                 }
                 entry.appendTo(this.location)
             },
@@ -1016,12 +1009,12 @@ var nexGui = {
             return dmg;
         },
         formatWho(who) {
-            let color = nexGui.cdb.players[who] ? nexGui.colors.city[nexGui.cdb.players[players[i]].city] : 'grey';
+            let color = nexGui.cdb.players[who] ? nexGui.colors.city[nexGui.cdb.players[who].city] : 'grey';
             if (who == 'Self') {color = 'cyan'};
 
             return $("<div></div>").css({
                display:'table-cell',
-                width: '20%',
+                width: '30%',
                 color: color
            }).text(who)
         },
@@ -1038,13 +1031,13 @@ var nexGui = {
 
             $("<div></div>").css({
                 display:'table-cell',
-                    width: '10%'
+                    width: '5%'
             }).text('').appendTo(row);
             this.formatWho(who).appendTo(row);
             
             let cellWhat = $('<div></div>').css({
                 display:'table-cell',
-                    width: '35%'
+                    width: '30%'
                 }).appendTo(row);
             $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
             $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
@@ -1082,7 +1075,7 @@ var nexGui = {
                     $('<span></span>', {style:'color:white'}).text(subject).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 } else {
-                    this.formatWho(subject).css({width:'auto'}).appendTo(row)
+                    this.formatWho(subject).css({color: 'white', width:'auto'}).appendTo(row)
                 }
             }
 
@@ -1090,8 +1083,8 @@ var nexGui = {
         },
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
-        actionMsg(who, what, subject) {
-            if (nexGui.colors.attacks[what]) {this.attackMsg(who, what, subject)}           
+        actionMsg(who = '', what = '', subject = '') {
+            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}           
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',
                'width': 'calc(100% - 14ch)',
@@ -1104,13 +1097,13 @@ var nexGui = {
 
             $("<div></div>").css({
                 display:'table-cell',
-                    width: '10%'
+                    width: '5%'
             }).text('').appendTo(row);
             this.formatWho(who).appendTo(row)
 
             $('<div></div>').css({
                 display:'table-cell',
-                    width: '35%'
+                    width: '30%'
             }).text(what).appendTo(row);
 
             $("<div></div>").css({
@@ -1378,7 +1371,14 @@ var nexGui = {
         addCharacterToMongo(data) {
             data.time = client.Date();
             data.user = GMCP.Status.name;
-            nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});
+            if (this.players[data.name]) {
+                if (data.city == "(hidden)" || data.city == "(none") {
+                    data.city = this.players[data.name].city;
+                }
+                nexGui.mongo.db.updateOne({'name':data.name}, data);
+            } else {
+                nexGui.mongo.db.insertOne(data);
+            }
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
         },

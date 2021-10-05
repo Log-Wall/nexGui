@@ -1,9 +1,14 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.9',
-    classBalance: true,
-    classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
+    version: '0.3.0',
+    character: {
+        hp: 0,
+        hpDiff: 0,
+        oldHP: 0,
+        class: 'none',
+        classBalanceType: 'Entity' // This is from GMCP.CharStats or GMCP.Char.Vitals
+    },
     colors: {
         highlightNames(txt) {
             let players = Object.keys(nexGui.cdb.players);
@@ -154,6 +159,11 @@ var nexGui = {
         optionRow.appendTo(container);
     },
     layout() {
+        /***********************************************************************
+            Start with the Nexus minimal theme and override from there.
+         ***********************************************************************/
+        client.set_css_style('minimal');
+        client.apply_stylesheet()
     	/***********************************************************************
             Helper functions
          ***********************************************************************/
@@ -336,6 +346,13 @@ var nexGui = {
         nexGui.feed.layout();
         nexGui.generateStyle();
     },
+    restoreLayout() {
+        ['#tbl_5a', '#tbl_5b', '#tlb_5c', '#tlb_5d'].forEach(e => $(e).empty());
+        ['#tbl_2h3a', '#tbl_2h3b', '#tlb_2h4b'].forEach(e => $(e).empty());
+        nexGui.pvp.layout();
+        nexGui.timer.layout();
+        nexGui.def.layout();
+    },
     notice(txt, html = false) {
         let msg = $('<span></span>', {
             class: "mono"
@@ -490,6 +507,33 @@ var nexGui = {
             nexGui.classBalanceUpdate(args);
         }
         nexSys.eventStream.registerEvent('Char.Vitals', nexGuiClassBalance);
+
+        let nexGuiClassChange = function(args) {
+            if (!args.class) {return;}
+            let profession = args.class.toLowerCase();
+            switch(profession) {
+                case 'air elemental lord':
+                    profession = 'airlord';
+                    break;
+                case 'fire elemental lord':
+                    profession = 'firelord';
+                    break;
+                case 'earth elemental lord':
+                    profession = 'earthlord';
+                    break;
+                case 'water elemental lord':
+                    profession = 'waterlord';
+                    break;
+            }
+            profession = profession.indexOf('dragon') != -1 ? 'dragon' : profession; // we will treat all dragons the same.
+            if (!nexGui[profession] || nexGui.character.class == profession) {
+                return;
+            }
+            nexGui.restoreLayout();
+            nexGui[profession].layout();
+            nexGui.character.profession = profession;
+        }
+        nexSys.eventStream.registerEvent('Char.Status', nexGuiClassChange);
     },   
     resize(left, middle) {
         left = left < 1 ? left : left/100;
@@ -501,11 +545,11 @@ var nexGui = {
     },
     classBalanceUpdate(args) {
         if (typeof args.charstats === 'undefined') {return;}
-        if (args.charstats.indexOf(`${nexGui.classBalanceType}: Yes`) != -1) {
+        if (args.charstats.indexOf(`${nexGui.character.classBalanceType}: Yes`) != -1) {
             $('#character_module_class').css('opacity', '100%')
             return
         }
-        if (args.charstats.indexOf(`${nexGui.classBalanceType}: No`) != -1) {
+        if (args.charstats.indexOf(`${nexGui.character.classBalanceType}: No`) != -1) {
             $('#character_module_class').css('opacity', '15%')
             return
         }
@@ -1349,7 +1393,7 @@ var nexGui = {
             for(let i = index+1; i < 25; i++) {
                 let entry = $('<div></div>', {class: 'nexGui_feed'}).css({'font-size':this.font_size})
                 $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
-                $('<span></span>').text(nexGui.colors.highlightNames(data[i].description)).appendTo(entry)
+                $('<span></span>').append(nexGui.colors.highlightNames(data[i].description)).appendTo(entry)
                 entry.appendTo(this.location);
                 if ($(this.location).children().length > 100) {
                     $(this.location).children()[0].remove()
@@ -1435,7 +1479,7 @@ var nexGui = {
         getCharacterServerList() {
             $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
                 for (let i = 0; i < data.characters.length; i++) {
-                    nexGui.cdb.getCharacterByURI(data.characters[i].uri);
+                    nexGui.cdb.getCharacterByURI(data.characters[i].uri, name);
                 }
             });
         },
@@ -1453,9 +1497,13 @@ var nexGui = {
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
         },
-        getCharacterByURI(uri) {
+        getCharacterByURI(uri, name) {
             $.getJSON( uri, function( data ) {
                 nexGui.cdb.addCharacterToMongo(data);
+            })
+            .fail(function() {
+                nexGui.mongo.db.deleteOne({'name':name})
+                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
             });
         },
         

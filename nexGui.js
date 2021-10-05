@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.2.8',
+    version: '0.2.9',
     classBalance: true,
     classBalanceType: 'Entity', // This is from GMCP.CharStats or GMCP.Char.Vitals
     colors: {

@@ -1,12 +1,12 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.0',
+    version: '0.3.1',
     character: {
         hp: 0,
         hpDiff: 0,
         oldHP: 0,
-        class: 'none',
+        profession: 'none',
         classBalanceType: 'Entity' // This is from GMCP.CharStats or GMCP.Char.Vitals
     },
     colors: {
@@ -526,7 +526,7 @@ var nexGui = {
                     break;
             }
             profession = profession.indexOf('dragon') != -1 ? 'dragon' : profession; // we will treat all dragons the same.
-            if (!nexGui[profession] || nexGui.character.class == profession) {
+            if (!nexGui[profession] || nexGui.character.profession == profession) {
                 return;
             }
             nexGui.restoreLayout();
@@ -796,8 +796,8 @@ var nexGui = {
                     'justify-content':'space-between'
                 })
                 .appendTo(this.location);
-            let partyLeft = $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
-            let partyRight = $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
+            $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
+            $('<div></div>', {id: 'partyRight'}).appendTo(partyDisplay);
 
             let leaderSelect = $("<div></div>", {id: "leaderSelector", style: "margin: 0 0 10px 0"});
             $("<p>Party Leader:  </p>", {}).appendTo(leaderSelect);
@@ -1305,11 +1305,58 @@ var nexGui = {
         
     },
 
+    aff: {
+        location: '#tbl_5a',
+        font_size: '12px',
+        font_color: 'red',
+        background_color: 'pink',
+        keepup: [],
+        layout() {
+            $(this.location).empty();
+            $('<div></div>')
+                .css({
+                    'width': '100%',
+                    'text-align': 'center'
+                })
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Missing Defs"))
+                .appendTo(this.location);
+        },
+        add(def) {
+            if (this.keepup.indexOf(def) == -1) {return;}
+            
+            let d = $('<div></div>', {id: `def-${def}`})
+            .css({
+                color: this.font_color,
+                'font-size': this.font_size,
+                'background-color': this.background_color,
+                width: '100%',
+                'text-align': 'center',
+                //'font-weight': 'bold',
+                opacity: '60%',
+                margin: '2px 0px 0px 0px'
+            })
+            .text(def.toProperCase())
+            d.appendTo(this.location);
+        },
+        remove(def) {
+            $(`#def-${def}`).remove();
+        },
+        update(defs) {
+            this.layout();
+            this.keepup.forEach(e=>{
+                if (defs.findIndex(el=>el.name == e) == -1)
+                    this.add(e)
+            })
+        }
+        
+    },
+
     timer: {
         location: '#tbl_5b',
         font_size: '11px',
         _timer: {},
         _start() {
+            console.log('nexGui.timer._start() called. Timer now running at 1 second interval');
             this._timer = setInterval(nexGui.timer._callBack, 1000);
         },
         _stop() {clearInterval(this._timer)},
@@ -1362,11 +1409,12 @@ var nexGui = {
         font_size: '11px',
         lastEntry: false,
         interval: 1000,
-        timer: {},
-        start() {
-            this.timer = setInterval(nexGui.feed.fetch, this.interval);
+        _timer: {},
+        _start() {
+            console.log('nexGui.feed._start() called. Timer now running at 1 second interval');
+            this._timer = setInterval(nexGui.feed.fetch, this.interval);
         },
-        stop() {clearInterval(this.timer)},
+        stop() {clearInterval(this._timer)},
         layout() {
             $(this.location).empty();
             $(this.location).css({
@@ -1377,7 +1425,7 @@ var nexGui = {
                 margin: '5px',
                 height: 'auto'
             });
-            this.start();
+            this._start();
         },
         fetch() {
             $.getJSON( nexGui.feed.url, function(data) {
@@ -1407,7 +1455,7 @@ var nexGui = {
     stream: {
         msgLimit: 100,
         write(location, msg) {
-            $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(entry);
+            $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(msg);
             msg.appendTo(location);
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()

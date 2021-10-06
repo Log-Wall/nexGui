@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.1',
+    version: '0.3.2',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -27,7 +27,8 @@ var nexGui = {
             eleusis: "#00ff00",
             hashan: "#808000",
             mhaldor: "#ff0000",
-            targossas: "#ffffff"
+            targossas: "#ffffff",
+            garden: "yellow"
         },
         attacks: {
             warp:'orange',
@@ -41,7 +42,8 @@ var nexGui = {
             garrote:'orange',
             bleed:'orange',
             doubleslash:'orange',
-            jab:'orange'
+            jab:'orange',
+            iron: 'orange'
         },
         actions: {
 
@@ -344,6 +346,8 @@ var nexGui = {
         nexGui.timer.layout();
         nexGui.def.layout();
         nexGui.feed.layout();
+        nexGui.target.layout();
+        nexGui.self.layout();
         nexGui.generateStyle();
     },
     restoreLayout() {
@@ -352,6 +356,8 @@ var nexGui = {
         nexGui.pvp.layout();
         nexGui.timer.layout();
         nexGui.def.layout();
+        nexGui.target.layout();
+        nexGui.self.layout();
     },
     notice(txt, html = false) {
         let msg = $('<span></span>', {
@@ -710,11 +716,11 @@ var nexGui = {
                     $(`player-${player}`).remove();
                 }
                 let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : ''}`})
-                    .css({
-                        color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
-                        margin: '0px 10px 0px 0px',
-                        'font-size': this.size
-                    })
+                .css({
+                    color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
+                    margin: '0px 10px 0px 0px',
+                    'font-size': this.size
+                })
                 $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
                 
                 if (nexGui.room.enemies.indexOf(player) != -1) {
@@ -724,6 +730,9 @@ var nexGui = {
                     $('<span></span>', {style:'color:white'}).text('(').prependTo(entry);
                     $('<span></span>', {style:'color:white'}).text(')').appendTo(entry);
                 }
+                entry.on('click', () => {
+                    send_direct(`settarget ${player}`);
+                })
                 entry.appendTo(this.location)
             },
             remove(player) {
@@ -1357,6 +1366,7 @@ var nexGui = {
         _timer: {},
         _start() {
             console.log('nexGui.timer._start() called. Timer now running at 1 second interval');
+            this._stop();
             this._timer = setInterval(nexGui.timer._callBack, 1000);
         },
         _stop() {clearInterval(this._timer)},
@@ -1412,9 +1422,10 @@ var nexGui = {
         _timer: {},
         _start() {
             console.log('nexGui.feed._start() called. Timer now running at 1 second interval');
+            this._stop();
             this._timer = setInterval(nexGui.feed.fetch, this.interval);
         },
-        stop() {clearInterval(this._timer)},
+        _stop() {clearInterval(this._timer)},
         layout() {
             $(this.location).empty();
             $(this.location).css({
@@ -1463,6 +1474,23 @@ var nexGui = {
         }
     },
 
+    self: {
+        font_size: '11px',
+        location: '#tbl_5c',
+
+        layout() {
+            let title = $('<div></div>').css({
+                'width': '100%',
+                'text-align': 'center',
+                'font-size': '13px'
+            }).appendTo(this.location);
+            $("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"})
+            .text("Self State")
+            .appendTo(title)
+            
+        }
+    },
+
     target: {
         font_size: '11px',
         location: '#tbl_5d',
@@ -1471,46 +1499,14 @@ var nexGui = {
             $(this.location).empty();
             $(this.location).css('font-size', this.font_size);
             
-            $('<div></div>')
-                .css({
-                    'width': '100%',
-                    'text-align': 'center',
-                    'font-size': '13px'
-                })
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Target State"))
-                .appendTo(this.location);
-            
-            let title = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {style:`display:table-cell;color:cyan;padding:0px 5px 0px 0px`}).text(`[${cdb.characterServerList['Khaseem'].class}]`).appendTo(title);
-            $('<span></span>', {style:`display:table-cell;color:${cdb.city_colours[cdb.characterServerList['Khaseem'].city]||this.nameColor}`}).text('Khaseem').appendTo(title);
-            
-            let location = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Location:').appendTo(location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Here').appendTo(location);
-            
-            let mana = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Mana:').appendTo(mana);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('6877/6877 (100%)').appendTo(mana);
-            
-            let tree = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Tree:').appendTo(tree);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('0').appendTo(tree);
-            
-            let classCure = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Class Cure:').appendTo(classCure);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('0').appendTo(classCure);
-            
-            let lust = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Lust:').appendTo(lust);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('false').appendTo(lust);
-            
-            let truename = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Truename:').appendTo(truename);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('0').appendTo(truename);
-            
-            let defs = $('<div></div>', {style:'display:table-row'}).appendTo(this.location);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('Missing:').appendTo(defs);
-            $('<span></span>', {display:'table-cell',style:`display:table-cell;padding:0px 5px 0px 0px`}).text('[Insomnia]').appendTo(defs);
+            let title = $('<div></div>').css({
+                'width': '100%',
+                'text-align': 'center',
+                'font-size': '13px'
+            }).appendTo(this.location);
+            $("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"})
+            .text("Target State")
+            .appendTo(title);
         }
     
     },

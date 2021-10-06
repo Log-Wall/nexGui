@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.2',
+    version: '0.3.3',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -18,15 +18,20 @@ var nexGui = {
             }
             return txt;
         },
-        room: {},
+        room: {
+            'a monolith sigil': {
+                color:'red',
+                msg:'A MONOLITH SIGIL'
+            }
+        },
         city: {
             "(hidden)": "gray",
             "(none)": "gray",
-            ashtan: "#800080",
-            cyrene: "#008080",
-            eleusis: "#00ff00",
-            hashan: "#808000",
-            mhaldor: "#ff0000",
+            ashtan: "#990099",
+            cyrene: "#009999",
+            eleusis: "#00e600",
+            hashan: "#999900",
+            mhaldor: "#e60000",
             targossas: "#ffffff",
             garden: "yellow"
         },
@@ -133,9 +138,11 @@ var nexGui = {
         
     },
     addOption(container, title, option, handler) {
-        handler = (e)=>{
-            nexSys.eventStream.raiseEvent(`nexGui-option-${title.replaceAll(' ','')}`, e.target.checked);
-        }
+        handler = handler ? 
+            handler :
+            (e)=>{
+                nexSys.eventStream.raiseEvent(`nexGui-option-${title.replaceAll(' ','')}`, e.target.checked);
+            }
         let optionRow = $('<tr></tr>', {id:`nexGui-option-${title.replaceAll(' ','')}`});
         $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).text(title).appendTo(optionRow);
 
@@ -597,8 +604,10 @@ var nexGui = {
         remove(item) {      
             if (item?.attrib == "m" || item?.attrib == "mx")
                 this.npcs.remove(item);
-            else
+            else {
+                this.npcs.remove(item);
                 this.items.remove(item);
+            }
         },
         layout() {
             $('#room_npc_table').remove();
@@ -631,7 +640,7 @@ var nexGui = {
                 $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
                 $('<th></th>', {style:"width:auto"}).appendTo('#room_item_table');
             };
-            $(this.npcs.location, this.items.location).css({
+            $(this.npcs.location).css({
                 overflow:'auto',
                 height:'100%'
             });
@@ -641,7 +650,9 @@ var nexGui = {
             });
             $(this.players.location).css({
                 display:'flex',
-                'flex-wrap':'wrap'
+                'flex-wrap':'wrap',
+                overflow: 'auto',
+                height: '100%'
             });
         }, 
         npcs: {
@@ -696,9 +707,19 @@ var nexGui = {
             nameColor: 'white',
             location: '#tbl_2h1v1a',
             add(item) {
+                let c = false;
+                let t = false;
+                if (nexGui.colors.room[item.id]) {
+                    c = nexGui.colors.room[item.id].color;
+                    t = nexGui.colors.room[item.id].text;
+                } else if (nexGui.colors.room[item.name]) {
+                    c = nexGui.colors.room[item.name].color;
+                    t = nexGui.colors.room[item.id].text;
+                }
+                
                 let entry = $('<tr></tr>', {id: `item-${item.id}`}).css({'font-size':this.size});;
                 $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${nexGui.colors.room[item.id]||nexGui.colors.room[item.name]||this.nameColor}`}).text(item.name).appendTo(entry);
+                $('<td></td>', {style:`color:${c||this.nameColor}`}).text(`${t||item.name}`).appendTo(entry);
                 entry.appendTo('#room_item_table');
             },
             remove(item) {
@@ -802,7 +823,7 @@ var nexGui = {
                 .css({
                     display:'flex',
                     'font-size': this.font_size,
-                    'justify-content':'space-between'
+                    'justify-content':'space-evenly'
                 })
                 .appendTo(this.location);
             $('<div></div>', {id: 'partyLeft'}).appendTo(partyDisplay);
@@ -1381,7 +1402,7 @@ var nexGui = {
         add(id, label, duration = 0) {
             $('<tr></tr>')
                     .append($('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(label))
-                    .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px"}).text(0))
+                    .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px;width:5ch"}).text(0))
                     .appendTo('#nexTimerTable');
             this[id] = {
                 id: id,
@@ -1405,7 +1426,7 @@ var nexGui = {
                 'border-spacing':'0px'})
             $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Timers').appendTo(timerTable);
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
-            $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
+            $('<th></th>', {style:"width:5ch"}).appendTo(timerTable);
             
             timerTable.appendTo(this.location);
             this._start();
@@ -1479,6 +1500,8 @@ var nexGui = {
         location: '#tbl_5c',
 
         layout() {
+            $(this.location).empty();
+            $(this.location).css('font-size', this.font_size);
             let title = $('<div></div>').css({
                 'width': '100%',
                 'text-align': 'center',
@@ -1523,7 +1546,7 @@ var nexGui = {
         getCharacterServerList() {
             $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
                 for (let i = 0; i < data.characters.length; i++) {
-                    nexGui.cdb.getCharacterByURI(data.characters[i].uri, name);
+                    nexGui.cdb.getCharacterByURI(data.characters[i].uri, data.name);
                 }
             });
         },
@@ -1577,44 +1600,6 @@ var nexGui = {
     },
 
     mongo: {
-        collect() {
-            /*
-            // Get all denizens in the current room
-            let roomDenizens = GMCP.Char.Items.List.items.filter(x => x.attrib == 'm' && !this.ignoreList.some(rx => rx.test(x.name)));// || x.attrib == 'mx');
-            let newDenizens = [];
-            let roamers = [];
-
-            if(roomDenizens.length>0) {
-                // Remove any denizens that are already in the entries
-                newDenizens = roomDenizens.filter(x => !this.entries.find(y => x.id == y.id));
-                if (this.logging) {console.log(newDenizens);}
-                // Find denizens that already have entries, but are in a new room.
-                roamers = roomDenizens.filter(x => this.entries.find(y => x.id == y.id && !y.room.includes(GMCP.Room.Info.num)));
-            }
-            else
-                return;
-    
-            // Add room number and area to each denizen object
-            for(let denizen of newDenizens) {
-                denizen.room = [GMCP.Room.Info.num];
-                denizen.area = {name: GMCP.Room.Info.area, id: GMCP.CurrentArea.id}
-                denizen.user = {
-                    id: this.user.id,
-                    name: GMCP.Status.name
-                }
-                this.entries.push(denizen);
-                this.db.insertOne(denizen);           
-            }
-    
-            for(let denizen of roamers) {
-                console.log(denizen);
-                let denizenUpdate = this.entries.find(x => x.id == denizen.id)
-                console.log(denizenUpdate);
-                denizenUpdate.room.push(GMCP.Room.Info.num);
-                this.db.updateOne({id:denizenUpdate.id}, {$set:{room:denizenUpdate.room}})
-            }   
-            */
-        },
         async startUp() {
             console.log('Mongo startup called');
 

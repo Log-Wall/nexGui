@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.3',
+    version: '0.3.4',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -21,7 +21,7 @@ var nexGui = {
         room: {
             'a monolith sigil': {
                 color:'red',
-                msg:'A MONOLITH SIGIL'
+                text:'A MONOLITH SIGIL'
             }
         },
         city: {
@@ -51,8 +51,17 @@ var nexGui = {
             iron: 'orange'
         },
         actions: {
-
+            eat: {color: 'gold',text:'Eat'},
+            smpke: {color: 'orange',text:'Smoke'},
+            apply: {color: 'aquamrine',text:'Apply'},
+            sip: {color: 'HotPink',text:'Sip'},
+            tattoo: {color: 'cornflowerBlue',text:'Tattoo'},
+        },
+        subjects: {
+            shield: {color: 'cyan',text:'Shield'},
+            tree: {color: 'lawngreen',text:'Tree'}
         }
+        
     },
     inject(rule) {
         if (!$('#client_nexgui-rules').length) {
@@ -354,7 +363,7 @@ var nexGui = {
         nexGui.def.layout();
         nexGui.feed.layout();
         nexGui.target.layout();
-        nexGui.self.layout();
+        nexGui.aff.layout();
         nexGui.generateStyle();
     },
     restoreLayout() {
@@ -434,6 +443,9 @@ var nexGui = {
         nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiDefenceAdd');
         nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiDefenceRemove');
         nexSys.eventStream.removeListener('Char.Defences.List', 'nexGuiDefences');
+        nexSys.eventStream.removeListener('Char.Afflictions.Remove', 'nexGuiAfflictionRemove');
+        nexSys.eventStream.removeListener('Char.Afflictions.Add', 'nexGuiAfflictionAdd');
+        nexSys.eventStream.removeListener('Char.Afflictions.List', 'nexGuiAfflictions');
         nexSys.eventStream.removeListener('IRE.Target.Info', 'nexGuiTargetInfo');
         nexSys.eventStream.removeListener('Char.Status', 'nexGuiCharStatus');       
         nexSys.eventStream.removeListener('IRE.Misc.Achievement', 'nexGuiMiscAchievement');
@@ -490,6 +502,21 @@ var nexGui = {
             nexGui.def.update(args);
         }
         nexSys.eventStream.registerEvent('Char.Defences.List', nexGuiDefences);
+
+        let nexGuiAfflictionAdd = function(args) {
+            nexGui.aff.add(args.name);
+        }
+        nexSys.eventStream.registerEvent('Char.Afflictions.Add', nexGuiAfflictionAdd);
+
+        let nexGuiAfflictionRemove = function(args) {
+            nexGui.aff.remove(args[0]);
+        }
+        nexSys.eventStream.registerEvent('Char.Afflictions.Remove', nexGuiAfflictionRemove);
+
+        let nexGuiAfflictions = function(args) {
+            nexGui.aff.update(args);
+        }
+        nexSys.eventStream.registerEvent('Char.Afflictions.List', nexGuiAfflictions);
 
         let nexGuiTargetInfo = function(args) {
             GMCP.TargetHP_Change = parseInt(GMCP.TargetHP_Old.slice(0,GMCP.TargetHP_Old.length-1,1))-parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
@@ -714,13 +741,18 @@ var nexGui = {
                     t = nexGui.colors.room[item.id].text;
                 } else if (nexGui.colors.room[item.name]) {
                     c = nexGui.colors.room[item.name].color;
-                    t = nexGui.colors.room[item.id].text;
+                    t = nexGui.colors.room[item.name].text;
                 }
                 
                 let entry = $('<tr></tr>', {id: `item-${item.id}`}).css({'font-size':this.size});;
                 $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
                 $('<td></td>', {style:`color:${c||this.nameColor}`}).text(`${t||item.name}`).appendTo(entry);
-                entry.appendTo('#room_item_table');
+
+                if (c || t) {
+                    entry.prependTo('#room_item_table');
+                } else {
+                    entry.appendTo('#room_item_table');
+                }
             },
             remove(item) {
                 $(`#item-${item.id}`).remove();
@@ -1105,7 +1137,16 @@ var nexGui = {
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who = '', what = '', subject = '') {
-            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}           
+            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}
+            
+            let c = false;
+            let t = false;
+            if (nexGui.colors.actions[what]) {
+                c = nexGui.colors.actions[what].color;
+                t = nexGui.colors.actions[what].text;
+            }
+
+            
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',
                'width': 'calc(100% - 14ch)',
@@ -1118,14 +1159,15 @@ var nexGui = {
 
             $("<div></div>").css({
                 display:'table-cell',
-                    width: '5%'
+                width: '5%'
             }).text('').appendTo(row);
             this.formatWho(who).appendTo(row)
 
             $('<div></div>').css({
                 display:'table-cell',
-                    width: '30%'
-            }).text(what).appendTo(row);
+                width: '30%',
+                color: `${c || ''}`
+            }).text(`${t || what}`).appendTo(row);
 
             $("<div></div>").css({
                 display:'table-cell'
@@ -1336,47 +1378,42 @@ var nexGui = {
     },
 
     aff: {
-        location: '#tbl_5a',
+        location: '#tbl_5c',
         font_size: '12px',
-        font_color: 'red',
-        background_color: 'pink',
-        keepup: [],
         layout() {
             $(this.location).empty();
             $('<div></div>')
                 .css({
                     'width': '100%',
+                    'font-size': '13px',
                     'text-align': 'center'
                 })
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Missing Defs"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Afflictions"))
                 .appendTo(this.location);
         },
-        add(def) {
-            if (this.keepup.indexOf(def) == -1) {return;}
-            
-            let d = $('<div></div>', {id: `def-${def}`})
+        add(aff) {
+            if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
+
+            let a = $('<div></div>', {id: `aff-${aff}`})
             .css({
                 color: this.font_color,
                 'font-size': this.font_size,
-                'background-color': this.background_color,
+                //'background-color': this.background_color,
                 width: '100%',
                 'text-align': 'center',
                 //'font-weight': 'bold',
-                opacity: '60%',
+                //opacity: '60%',
                 margin: '2px 0px 0px 0px'
             })
-            .text(def.toProperCase())
-            d.appendTo(this.location);
+            .text(aff.toProperCase())
+            a.appendTo(this.location);
         },
-        remove(def) {
-            $(`#def-${def}`).remove();
+        remove(aff) {
+            $(`#aff-${aff}`).remove();
         },
-        update(defs) {
+        update(affs) {
             this.layout();
-            this.keepup.forEach(e=>{
-                if (defs.findIndex(el=>el.name == e) == -1)
-                    this.add(e)
-            })
+            affs.forEach(e=>{this.add(e)})
         }
         
     },
@@ -1402,7 +1439,7 @@ var nexGui = {
         add(id, label, duration = 0) {
             $('<tr></tr>')
                     .append($('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(label))
-                    .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px;width:5ch"}).text(0))
+                    .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px;width:4ch;text-align:right"}).text(0))
                     .appendTo('#nexTimerTable');
             this[id] = {
                 id: id,
@@ -1422,11 +1459,12 @@ var nexGui = {
                 'font-size': this.font_size,
                 'text-align':'left',
                 //'table-layout':'fixed',
+                'width': 'auto',
                 'max-width':'100%',
                 'border-spacing':'0px'})
             $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Timers').appendTo(timerTable);
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
-            $('<th></th>', {style:"width:5ch"}).appendTo(timerTable);
+            $('<th></th>', {style:"width:4ch"}).appendTo(timerTable);
             
             timerTable.appendTo(this.location);
             this._start();

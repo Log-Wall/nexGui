@@ -820,8 +820,10 @@ var nexGui = {
                 .css({
                     color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
                     margin: '1px 5px 1px 5px',
-                    padding: '0px 1px 0px 1px',
-                    'font-size': this.size
+                    padding: '2px',
+                    'font-size': this.size,
+                    height: '17px' // we set the height here because the container is a flexbox. The flexbox has height 100% so it will show the
+                    // scrollbar at all times.
                 })
                 $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
                 
@@ -1581,8 +1583,12 @@ var nexGui = {
 
     stream: {
         msgLimit: 100,
-        write(location, msg) {
-            $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(msg);
+        write(location, msg, timeFormat = 'noms') {
+            if (timeFormat == 'noms') {
+                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(msg);
+            } else {
+                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTime('ms')+" ").prependTo(msg);
+            }
             msg.appendTo(location);
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()

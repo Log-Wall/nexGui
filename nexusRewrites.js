@@ -98,14 +98,14 @@ client.write_channel = function(command,message,talker) {
     if ($("#channel_" + command).length > 0)
     {
         try {
-            message = nexGui.room.highlightNames(message);//nexGui
+            message = nexGui.colors.highlightNames(message);//nexGui
             ow_Write("#channel_" + command, message)
             client.channel_new_indicator(command);
         } catch (e) { }
     }
 
     if ($("#channel_all").length > 0) {
-        message = nexGui.room.highlightNames(message); //nexGui
+        message = nexGui.colors.highlightNames(message); //nexGui
         ow_Write("#channel_all", `${client.getTimeNoMS()} ${message}`);
         client.channel_new_indicator('all');
     }
@@ -236,14 +236,14 @@ client.handle_GMCP = function(data)
                 for (v in s)
                     GMCP.Status[v] = s[v];
                 var status = GMCP.Status;
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
                 break;
 
             case "Char.Vitals":
                 // Handled by each game's character_module.php include
                 if (gmcp_args.charstats) {
                     GMCP.CharStats = gmcp_args.charstats;
-                    client.update_affdef_stats();
+                    //client.update_affdef_stats();
                 }
                 /** nexGUI we don't need the voting button
                 var vote_display = gmcp_args.vote ? 'block' : 'none';
@@ -261,7 +261,7 @@ client.handle_GMCP = function(data)
                 }
 
                 parse_gauges(gmcp_args);
-                if (client.game == 'Lusternia') parse_lusternia_wounds(gmcp_args);
+                //if (client.game == 'Lusternia') parse_lusternia_wounds(gmcp_args);
 
                 gmcp_fire_event = true;
                 gmcp_event_param = '';
@@ -333,13 +333,13 @@ client.handle_GMCP = function(data)
                     var aff = gmcp_args[i];  // this has keys: name, cure, desc
                     GMCP.Afflictions[aff.name] = aff;
                 }
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
                 break;
 
             case "Char.Afflictions.Add":
                 var aff = gmcp_args;
                 GMCP.Afflictions[aff.name] = aff;
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
 
                 gmcp_fire_event = true;
                 gmcp_event_param = aff;
@@ -348,7 +348,7 @@ client.handle_GMCP = function(data)
             case "Char.Afflictions.Remove":
                 for (var i = 0; i < gmcp_args.length; ++i)
                 delete GMCP.Afflictions[gmcp_args[i]];
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
 
                 gmcp_fire_event = true;
                 gmcp_event_param = aff;
@@ -360,13 +360,13 @@ client.handle_GMCP = function(data)
                     var def = gmcp_args[i];  // this has keys: name, desc
                     GMCP.Defences[def.name] = def;
                 }
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
                 break;
 
             case "Char.Defences.Add":
                 var def = gmcp_args;
                 GMCP.Defences[def.name] = def;
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
 
                 gmcp_fire_event = true;
                 gmcp_event_param = def;
@@ -375,7 +375,7 @@ client.handle_GMCP = function(data)
             case "Char.Defences.Remove":
                 for (var i = 0; i < gmcp_args.length; ++i)
                 delete GMCP.Defences[gmcp_args[i]];
-                client.draw_affdef_tab();
+                //client.draw_affdef_tab();
 
                 gmcp_fire_event = true;
                 gmcp_event_param = def;

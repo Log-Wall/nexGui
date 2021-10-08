@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.5',
+    version: '0.3.6',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -12,16 +12,39 @@ var nexGui = {
     colors: {
         highlightNames(txt) {
             let players = Object.keys(nexGui.cdb.players);
-            for (let i = 0; i < players.length; i++) {
-                let colour = nexGui.colors.city[nexGui.cdb.players[players[i]].city]; 
-                txt = txt.replace(nexGui.cdb.players[players[i]].regex, `<span style="color:${colour}">${players[i]}</span>`);
-            }if (nexGui.room.enemies.indexOf(player) != -1) {
-                $('<span>(</span>', {style:'color:red'})
-                $('<span>)</span>', {style:'color:red'})
-            } else if (nexGui.room.allies.indexOf(player) != -1) {
-                $('<span>(</span>', {style:'color:white'})
-                $('<span>)</span>', {style:'color:white'})
+            let replacer = function(player) {
+                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
+                let entry = $('<span></span>').css({
+                    color: colour
+                }).text(player);
+                if (nexGui.room.enemies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:red'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:red'}).appendTo(entry);
+                } else if (nexGui.room.allies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:white'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:white'}).appendTo(entry);
+                }
+                return entry[0];
             }
+            let replacer1 = function(player) {
+                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
+                let entry = $('<span></span>').css({
+                    color: colour
+                }).text(player);
+                if (nexGui.room.enemies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:red'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:red'}).appendTo(entry);
+                } else if (nexGui.room.allies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:white'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:white'}).appendTo(entry);
+                }
+                return entry[0];
+            }
+            for (let i = 0; i < players.length; i++) {
+                
+                txt = txt.replace(nexGui.cdb.players[players[i]].regex, replacer(players[i]));
+            }
+
             return txt;
         },
         room: {

@@ -11,6 +11,27 @@ var nexGui = {
     },
     colors: {
         highlightNames(txt) {
+            let names = Object.keys(nexGui.cdb.players);
+            for(let i = 0; i < names.length; i++) {
+                if (txt.indexOf(names[i]) != -1) {
+                    let name = nexGui.cdb.players[names[i]];
+                    txt = txt.replace(name.regex, `${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:red">(</span>' : 
+                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:white">(</span>' :
+                        ''
+                    }<span style="color:${nexGui.colors.city[name.city]}">${names[i]}</span>${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:red">)</span>' : 
+                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:white">)</span>' :
+                        ''
+                    }`)
+                }
+            }
+            return txt;
+        },
+        /* Experimental code. Appears to be orders of magnitude slower this way
+        highlightNames(txt) {
             let players = Object.keys(nexGui.cdb.players);
             let replacer = function(player) {
                 let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
@@ -28,17 +49,15 @@ var nexGui = {
             }
             let replacer1 = function(player) {
                 let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
-                let entry = $('<span></span>').css({
-                    color: colour
-                }).text(player);
                 if (nexGui.room.enemies.indexOf(player) != -1) {
-                    $('<span>(</span>', {style:'color:red'}).prependTo(entry);
-                    $('<span>)</span>', {style:'color:red'}).appendTo(entry);
+                    let p = '<span style="color:red">(</span>';
+                    let a = '<span style="color:red">)</span>';
                 } else if (nexGui.room.allies.indexOf(player) != -1) {
-                    $('<span>(</span>', {style:'color:white'}).prependTo(entry);
-                    $('<span>)</span>', {style:'color:white'}).appendTo(entry);
+                    let p = '<span style="color:white">(</span>';
+                    let a = '<span style="color:white">)</span>';
                 }
-                return entry[0];
+                
+                return `${p?p:''}<span style="color:${colour}">${player}</span>${a?a:''}`;
             }
             for (let i = 0; i < players.length; i++) {
                 
@@ -46,7 +65,7 @@ var nexGui = {
             }
 
             return txt;
-        },
+        },*/
         room: {
             'a monolith sigil': {
                 color:'red',
@@ -193,11 +212,6 @@ var nexGui = {
         })
             .prop('checked', option)
         	.on('change', handler)
-            /*.on('change', function () {
-            option = $(this).prop('checked');
-            console.log(option)
-            console.log($(this).prop('checked'))
-        	})*/
             .appendTo(lab);
         $('<span></span>', {
             'class': 'nexslider nexInput'
@@ -610,6 +624,7 @@ var nexGui = {
             }
             profession = profession.indexOf('dragon') != -1 ? 'dragon' : profession; // we will treat all dragons the same.
             if (!nexGui[profession] || nexGui.character.profession == profession) {
+                nexGui.character.profession = profession;
                 return;
             }
             nexGui.restoreLayout();
@@ -643,16 +658,6 @@ var nexGui = {
         enemies: [],
         allies: [],
         colors: {},
-        highlightNames(txt) {
-            let names = Object.keys(nexGui.cdb.players);
-            for(let i = 0; i < names.length; i++) {
-                if (txt.indexOf(names[i]) != -1) {
-                    let name = nexGui.cdb.players[names[i]];
-                    txt = txt.replace(name.regex, `<span style="color:${nexGui.colors.city[name.city]}">${names[i]}</span>`)
-                }
-            }
-            return txt;
-        },
         addAll(items) {
             $('#room_npc_table > tr').remove();
             $('#room_item_table > tr').remove();
@@ -820,17 +825,24 @@ var nexGui = {
                 })
                 $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
                 
+                let pre = false
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span></span>', {style:'color:red'}).text('(').prependTo(entry);
                     $('<span></span>', {style:'color:red'}).text(')').appendTo(entry);
+                    pre = true;
                 } else if (nexGui.room.allies.indexOf(player) != -1) {
                     $('<span></span>', {style:'color:white'}).text('(').prependTo(entry);
                     $('<span></span>', {style:'color:white'}).text(')').appendTo(entry);
+                    pre = true;
                 }
                 entry.on('click', () => {
                     send_direct(`settarget ${player}`);
-                })
-                entry.appendTo(this.location)
+                });
+                
+                if (pre)
+                    entry.prependTo(this.location)
+                else
+                    entry.appendTo(this.location)
             },
             remove(player) {
                 $(`#player-${player}`).remove();
@@ -1411,12 +1423,10 @@ var nexGui = {
         remove(def) {
             $(`#def-${def}`).remove();
         },
-        update(defs) {
+        update() {
             this.layout();
-            this.keepup.forEach(e=>{
-                if (defs.findIndex(el=>el.name == e) == -1)
-                    this.add(e)
-            })
+            this.keepup.filter(x => Object.keys(GMCP.Defences).indexOf(x)==-1)
+                .forEach(e=>this.add(e));
         }
         
     },

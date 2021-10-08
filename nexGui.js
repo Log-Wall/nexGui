@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.4',
+    version: '0.3.5',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -15,6 +15,12 @@ var nexGui = {
             for (let i = 0; i < players.length; i++) {
                 let colour = nexGui.colors.city[nexGui.cdb.players[players[i]].city]; 
                 txt = txt.replace(nexGui.cdb.players[players[i]].regex, `<span style="color:${colour}">${players[i]}</span>`);
+            }if (nexGui.room.enemies.indexOf(player) != -1) {
+                $('<span>(</span>', {style:'color:red'})
+                $('<span>)</span>', {style:'color:red'})
+            } else if (nexGui.room.allies.indexOf(player) != -1) {
+                $('<span>(</span>', {style:'color:white'})
+                $('<span>)</span>', {style:'color:white'})
             }
             return txt;
         },
@@ -51,15 +57,15 @@ var nexGui = {
             iron: 'orange'
         },
         actions: {
-            eat: {color: 'gold',text:'Eat'},
-            smpke: {color: 'orange',text:'Smoke'},
-            apply: {color: 'aquamrine',text:'Apply'},
-            sip: {color: 'HotPink',text:'Sip'},
-            tattoo: {color: 'cornflowerBlue',text:'Tattoo'},
+            eat: {color: 'gold', text:'Eat'},
+            smoke: {color: 'orange', text:'Smoke'},
+            apply: {color: 'aquamrine', text:'Apply'},
+            sip: {color: 'HotPink', text:'Sip'},
+            tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
         },
         subjects: {
-            shield: {color: 'cyan',text:'Shield'},
-            tree: {color: 'lawngreen',text:'Tree'}
+            shield: {color: 'cyan', text:'Shield'},
+            tree: {color: 'lawngreen', text:'Tree'}
         }
         
     },
@@ -431,7 +437,6 @@ var nexGui = {
         client.send_direct('allies');
         client.send_direct('def');
         client.send_direct('ql');
-        this.notice(`GUI version ${this.version} loaded and ready for use.`);
     },
     restoreEvents() {
         nexSys.eventStream.removeListener('Char.Items.List', 'nexGuiRoomAddAll');
@@ -446,11 +451,12 @@ var nexGui = {
         nexSys.eventStream.removeListener('Char.Afflictions.Remove', 'nexGuiAfflictionRemove');
         nexSys.eventStream.removeListener('Char.Afflictions.Add', 'nexGuiAfflictionAdd');
         nexSys.eventStream.removeListener('Char.Afflictions.List', 'nexGuiAfflictions');
-        nexSys.eventStream.removeListener('IRE.Target.Info', 'nexGuiTargetInfo');
-        nexSys.eventStream.removeListener('Char.Status', 'nexGuiCharStatus');       
+        nexSys.eventStream.removeListener('Char.Status', 'nexGuiCharStatus');   
+        nexSys.eventStream.removeListener('Char.Status', 'nexGuiTarget');    
         nexSys.eventStream.removeListener('IRE.Misc.Achievement', 'nexGuiMiscAchievement');
         nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
         nexSys.eventStream.removeListener('Char.Vitals', 'nexGuiClassBalance');
+        nexSys.eventStream.removeListener('IRE.Target.Set', 'nexGuiTarget')
 
         // Populate nexGUI GMCP events
         let nexGuiRoomAddAll = function(args) {
@@ -528,6 +534,20 @@ var nexGui = {
             nexGui.stats.update();
         }  
         nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
+
+        let nexGuiTarget = function(args) {
+            if (!args.target) {return;}
+
+            $('.nexGui_room-target').removeClass('nexGui_room-target');
+            if (GMCP.TargetIsPlayer) {
+                $(`#player-${GMCP.Target}`).addClass('nexGui_room-target');
+                $('.nexGui_room-target').prependTo('#room_player_table');
+            } else {
+                $(`#npc-${GMCP.Target}`).addClass('nexGui_room-target');
+                $('.nexGui_room-target').prependTo('#room_npc_table');
+            }
+        }
+        nexSys.eventStream.registerEvent('Char.Status', nexGuiTarget);
 
         let nexGuiMiscAchievement = function(args) {
             if (args?.name == 'TotalCreaturesKilled') {
@@ -771,7 +791,8 @@ var nexGui = {
                 let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : ''}`})
                 .css({
                     color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
-                    margin: '0px 10px 0px 0px',
+                    margin: '1px 5px 1px 5px',
+                    padding: '0px 1px 0px 1px',
                     'font-size': this.size
                 })
                 $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
@@ -1394,6 +1415,8 @@ var nexGui = {
         add(aff) {
             if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
 
+            aff = aff.replace('(','').replace(')','').replace(' ', '-');
+
             let a = $('<div></div>', {id: `aff-${aff}`})
             .css({
                 color: this.font_color,
@@ -1409,11 +1432,12 @@ var nexGui = {
             a.appendTo(this.location);
         },
         remove(aff) {
+            aff = aff.replace('(','').replace(')','').replace(' ', '-');
             $(`#aff-${aff}`).remove();
         },
         update(affs) {
             this.layout();
-            affs.forEach(e=>{this.add(e)})
+            affs.forEach(e=>{nexGui.aff.add(e.name)})
         }
         
     },

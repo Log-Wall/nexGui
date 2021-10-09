@@ -353,11 +353,10 @@ var nexGui = {
             Footer bar changes
          ***********************************************************************/
         $('#vote, #help, #footer > .separator').hide();
-        $('#status-level, #status-gold, #status-bank').hide();
         $('#status-ping').prependTo('#character_module_status');
         $('#status-ping').css('width', '8%');
-        $('#status-target').css('width', '75%');
-        $('#character_module_status').css('width', '25%');
+        $('#status-target').css('width', '73%');
+        $('#character_module_status').css('width', '23%');
         $('#character_module_balances').remove()
         $('#gauges').remove();
         let res ='';
@@ -379,6 +378,10 @@ var nexGui = {
         .append($('<div></div>', {id:'character_module_equilibrium', class: 'balance eq'}))
         .append($('<div></div>', {id:'character_module_class', class: 'balance class-balance'}))
         .insertBefore('#gauges');
+
+        let mod2 = $('<div></div>', {id:"character_module_status", style:"width: 18%"}).insertAfter('#gauges');
+        $('#status-level, #status-gold, #status-bank').appendTo(mod2);
+        $('#status-level, #status-gold, #status-bank').css('width', '70px');
 
         /***********************************************************************
             Stuff
@@ -417,6 +420,7 @@ var nexGui = {
         nexGui.def.layout();
         nexGui.target.layout();
         nexGui.self.layout();
+        nexGui.stream.layout();
     },
     notice(txt, html = false) {
         let msg = $('<span></span>', {
@@ -469,6 +473,7 @@ var nexGui = {
 
         this.restoreEvents();
         this.layout();
+        client.send_direct('stat');
         client.send_direct('pwho');
         client.send_direct('enemies');
         client.send_direct('allies');
@@ -1582,17 +1587,50 @@ var nexGui = {
     },
 
     stream: {
+        location: '#tbl_2h3b',
+        font_size: '12px',
         msgLimit: 100,
         write(location, msg, timeFormat = 'noms') {
             if (timeFormat == 'noms') {
-                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").prependTo(msg);
+                $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTimeNoMS()+" ").prependTo(msg);
             } else {
-                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTime('ms')+" ").prependTo(msg);
+                $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").prependTo(msg);
             }
             msg.appendTo(location);
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()
             }
+
+            $(location).parent().scrollTop($(location)[0].scrollHeight)
+        },
+        layout() {
+            $(this.location).empty()
+            $('<div></div>', {id:"nexGuiStream"})
+                .css({
+                    'font-size':this.font_size,
+                    'line-height':'14px'
+                })
+                .appendTo(this.location)
+            let nexGuiStreamAddAff = function(aff) {
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+aff  </span><span>${aff.name.toProperCase()}</span></div>`), 'ms')
+            }
+            let nexGuiStreamAddDef = function(def) {
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+def  </span><span>${def.name.toProperCase()}</span></div>`), 'ms')
+            }
+            let nexGuiStreamLostAff = function(aff) {
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-aff  </span><span>${aff[0].toProperCase()}</span></div>`), 'ms')
+            }
+            let nexGuiStreamLostDef = function(def) {
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-def  </span><span>${def[0].toProperCase()}</span></div>`), 'ms')
+            }
+            nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiStreamLostDef');
+            nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiStreamAddDef');
+            nexSys.eventStream.removeListener('Char.Afflictions.Remove', 'nexGuiStreamLostAff');
+            nexSys.eventStream.removeListener('Char.Afflictions.Add', 'nexGuiStreamAddAff');
+            nexSys.eventStream.registerEvent('Char.Defences.Remove', nexGuiStreamLostDef);
+            nexSys.eventStream.registerEvent('Char.Defences.Add', nexGuiStreamAddDef);
+            nexSys.eventStream.registerEvent('Char.Afflictions.Remove', nexGuiStreamLostAff);
+            nexSys.eventStream.registerEvent('Char.Afflictions.Add', nexGuiStreamAddAff);
         }
     },
 

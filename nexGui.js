@@ -1615,16 +1615,16 @@ var nexGui = {
                     'line-height':'14px'
                 })
                 .appendTo(this.location);
-            let nexGuiStreamAddAff = function(aff) {
+            let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
             }
-            let nexGuiStreamAddDef = function(def) {
+            let nexGuiStreamAddDef = function nexGuiStreamAddDef(def) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+def&nbsp&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
             }
-            let nexGuiStreamLostAff = function(aff) {
+            let nexGuiStreamLostAff = function nexGuiStreamLostAff(aff) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
             }
-            let nexGuiStreamLostDef = function(def) {
+            let nexGuiStreamLostDef = function nexGuiStreamLostDef(def) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-def&nbsp&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');
             }
             nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiStreamLostDef');

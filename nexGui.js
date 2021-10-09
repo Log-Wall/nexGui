@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.2',
+    version: '0.4.3',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -356,7 +356,7 @@ var nexGui = {
         $('#status-ping').prependTo('#character_module_status');
         $('#status-ping').css('width', '8%');
         $('#status-target').css('width', '73%');
-        $('#character_module_status').css('width', '23%');
+        $('#character_module_status').css('width', '22%');
         $('#character_module_balances').remove()
         $('#gauges').remove();
         let res ='';
@@ -370,7 +370,7 @@ var nexGui = {
         let el = $(res);
         el.insertAfter('#character_module_status')
         $('#gauges').css({
-            'width': '38%',
+            'width': '37%',
             'padding': '2px 0 0 0'
         });
         $('<div></div>', {id:'character_module_balances', class: 'reduced', style: 'padding: 0 5px 0 0'})
@@ -1616,16 +1616,16 @@ var nexGui = {
                 })
                 .appendTo(this.location);
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamAddDef = function nexGuiStreamAddDef(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+def&nbsp&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+def&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostAff = function nexGuiStreamLostAff(aff) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-aff&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostDef = function nexGuiStreamLostDef(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-def&nbsp&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-def&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');
             }
             nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiStreamLostDef');
             nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiStreamAddDef');

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.3.6',
+    version: '0.4.0',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -1604,24 +1604,28 @@ var nexGui = {
             $(location).parent().scrollTop($(location)[0].scrollHeight)
         },
         layout() {
-            $(this.location).empty()
+            $(this.location).empty();
+            $(this.location).css({
+                overflow: 'auto',
+                height: '100%'
+            });
             $('<div></div>', {id:"nexGuiStream"})
                 .css({
                     'font-size':this.font_size,
                     'line-height':'14px'
                 })
-                .appendTo(this.location)
+                .appendTo(this.location);
             let nexGuiStreamAddAff = function(aff) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+aff  </span><span>${aff.name.toProperCase()}</span></div>`), 'ms')
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamAddDef = function(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+def  </span><span>${def.name.toProperCase()}</span></div>`), 'ms')
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:lawngreen">+def&nbsp&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostAff = function(aff) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-aff  </span><span>${aff[0].toProperCase()}</span></div>`), 'ms')
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-aff&nbsp&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostDef = function(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-def  </span><span>${def[0].toProperCase()}</span></div>`), 'ms')
+                nexGui.stream.write('#nexGuiStream', $(`<div><span style="color:crimson">-def&nbsp&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');
             }
             nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiStreamLostDef');
             nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiStreamAddDef');

@@ -106,7 +106,7 @@ client.write_channel = function(command,message,talker) {
 
     if ($("#channel_all").length > 0) {
         message = nexGui.colors.highlightNames(message); //nexGui
-        ow_Write("#channel_all", `${client.getTimeNoMS()} ${message}`);
+        ow_Write("#channel_all", `<span class="timestamp">${client.getTimeNoMS()}</span> ${message}`);
         client.channel_new_indicator('all');
     }
 }
@@ -1059,6 +1059,7 @@ client.handle_GMCP = function(data)
     }
 }
 
+// Custom nexGui function
 client.getTime=function(format)
 {
     let today=new Date();
@@ -1081,4 +1082,68 @@ client.getTime=function(format)
     }
 
     return res;
+}
+
+// This is where the resizing of the main window occurs on redraw. Need to figure out how to edit this so that it will resize the main content window
+// when the input bar grows for multiple lines.
+client.layout_subtree = function(tree) {
+    if (!tree.elements) return;
+
+    var mainel = $('#'+tree.id);
+    if (!layout_element_drawn(tree)) {
+        mainel.css('display', 'none');
+        return;
+    }
+    mainel.css('display', 'block');
+    // if its weight is set to 0, it is still drawn, but with display:none
+    var w = tree.weight;
+    if (client.mobile && (tree.mobile_weight !== undefined)) w = tree.mobile_weight;
+    if ((w !== undefined) && (w === 0)) mainel.css('display', 'none').css('width', '100%');
+
+    var type = tree.type;
+    if ((type != 'hbox') && (type != 'vbox')) return;
+    var weights = 0.0, statics = 0.0, spacers = 0.0;
+    for (var i = 0; i < tree.elements.length; ++i) {
+        var tel = tree.elements[i];
+        if (!layout_element_drawn(tel)) continue;
+
+        var w = tel.weight;
+        if (client.mobile && (tel.mobile_weight !== undefined)) w = tel.mobile_weight;
+        if (tel.type == 'spacer') spacers += tel.spacer;
+        else if (w === 'static') statics += layout_static_size(tel);
+        else if (w) weights += w;
+    }
+    if (type == 'hbox') mainel.css('clear', 'both');
+    // incorporate spacers if nothing else exists, clear them if they are not needed
+    if ((weights == 0.0) && (spacers > 0)) weights += spacers;
+    else spacers = 0;
+    for (var i = 0; i < tree.elements.length; ++i) {
+        var tel = tree.elements[i];
+
+        if (!layout_element_drawn(tel)) {
+            layout_subtree(tel);
+            continue;
+        }
+
+        var w = tel.weight;
+        if (client.mobile && (tel.mobile_weight !== undefined)) w = tel.mobile_weight;
+        if (spacers && (tel.type == 'spacer')) w = tel.spacer;
+
+        var el = $('#'+tel.id);
+        var sz = '';
+        if (w === 'static') sz = layout_static_size(tel)+'px';
+        else
+        {
+            var percent = w * 100.0 / weights;
+            var fixed = statics * percent / 100.0;
+            sz = percent+'%';
+            if (fixed) sz = 'calc('+sz+' - '+fixed+'px)';
+        }
+        if (type == 'hbox')
+            el.css('height', '100%').css('float', 'left').css('width', sz);
+        else
+            el.css('width', '100%').css('height', sz);
+
+        layout_subtree(tel);
+    }
 }

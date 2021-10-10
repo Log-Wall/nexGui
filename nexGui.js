@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.6',
+    version: '0.4.7',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -415,7 +415,7 @@ var nexGui = {
     },
     restoreLayout() {
         ['#tbl_5a', '#tbl_5b', '#tlb_5c', '#tlb_5d'].forEach(e => $(e).empty());
-        ['#tbl_2h3a', '#tbl_2h3b', '#tlb_2h4b'].forEach(e => $(e).empty());
+        ['#tbl_2h3a', '#tlb_2h4b'].forEach(e => $(e).empty());
         nexGui.pvp.layout();
         nexGui.timer.layout();
         nexGui.def.layout();

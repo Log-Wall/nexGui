@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.4',
+    version: '0.4.5',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -1809,8 +1809,8 @@ var nexGui = {
             nexGui.aliases[alias](args);
         },
         load() {            
-            client.reflex_enable(reflex_find_by_name("group", "nexGui.colors", false, false, "nexMap"));
-            client.reflex_enable(reflex_find_by_name("group", "nexGui.stream", false, false, "nexMap"));
+            client.reflex_enable(reflex_find_by_name("group", "nexGui.colors", false, false, "Nexgui"));
+            client.reflex_enable(reflex_find_by_name("group", "nexGui.stream", false, false, "Nexgui"));
             client.run_function('nexGui.colors', {}, 'Nexgui');
             client.run_function('nexGui.occultist', {}, 'Nexgui');
             client.run_function('nexGui.dragon', {}, 'Nexgui');

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.7',
+    version: '0.4.8',
     character: {
         hp: 0,
         hpDiff: 0,

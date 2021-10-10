@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.8',
+    version: '0.4.9',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -1410,8 +1410,9 @@ var nexGui = {
                 .appendTo(this.location);
         },
         add(def) {
-            if (this.keepup.indexOf(def) == -1) {return;}
             
+            if (this.keepup.indexOf(def) == -1) {return;}
+            def = def.replace("(",'').replace(")",'').replaceAll(" ",'-');
             let d = $('<div></div>', {id: `def-${def}`})
             .css({
                 color: this.font_color,
@@ -1427,14 +1428,14 @@ var nexGui = {
             d.appendTo(this.location);
         },
         remove(def) {
+            def = def.replace("(",'').replace(")",'').replaceAll(" ",'-');
             $(`#def-${def}`).remove();
         },
         update() {
             this.layout();
             this.keepup.filter(x => Object.keys(GMCP.Defences).indexOf(x)==-1)
                 .forEach(e=>this.add(e));
-        }
-        
+        }       
     },
 
     aff: {

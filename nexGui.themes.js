@@ -1,20 +1,21 @@
 nexGui.themes = {
     fireflies() {
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
-        $('<div class="firefly"></div>').appendTo('#tbl_2h3a')
+        $('#tbl_2h3a').empty();
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="firefly nexGui-theme"></div>').appendTo('#tbl_2h3a')
         $('#Khaseem-Fireflies').remove();
         $('#tbl_2h3a').css({overflow: 'hidden', height: '100%'});
         $('body').append(` <style id="Khaseem-Fireflies">
@@ -1381,16 +1382,17 @@ nexGui.themes = {
         </style>`)
     },
     moonSmall() {
-        $('#tbl_2h3b').empty();
+        $('#tbl_2h3a').empty();
         $('<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/moon2.png" alt="">').css({
         height: '50%',
         position: 'absolute',
         'z-index': '3',
-        right: '20px'
-        }).appendTo('#tbl_2h3b')
-        $('<div class="stars"></div>').appendTo('#tbl_2h3b')
-        $('<div class="twinkling"></div>').appendTo('#tbl_2h3b')
-        $('<div class="small_clouds"></div>').appendTo('#tbl_2h3b')
+        right: '20px',
+        class: 'nexGui-theme'
+        }).appendTo('#tbl_2h3a')
+        $('<div class="stars nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="twinkling nexGui-theme"></div>').appendTo('#tbl_2h3a')
+        $('<div class="small_clouds nexGui-theme"></div>').appendTo('#tbl_2h3a')
         $('#Khaseem-Clouds-mini').remove();
 
         $('body').append(`<style id="Khaseem-Clouds-mini">
@@ -1485,11 +1487,12 @@ nexGui.themes = {
         height: '25%',
         position: 'absolute',
         'z-index': '3',
-        right: '20px'
+        right: '20px',
+        class: 'nexGui-theme'
         }).prependTo('#output_main')
-        $('<div class="stars"></div>').prependTo('#output_main')
-        $('<div class="twinkling"></div>').prependTo('#output_main')
-        $('<div class="clouds"></div>').prependTo('#output_main')
+        $('<div class="stars nexGui-theme"></div>').prependTo('#output_main')
+        $('<div class="twinkling nexGui-theme"></div>').prependTo('#output_main')
+        $('<div class="clouds nexGui-theme"></div>').prependTo('#output_main')
         $('#output_main > .output_wrap').css({'z-index': '4',position:'relative'});
         $('#Khaseem-Clouds-main').remove();
 
@@ -1583,11 +1586,11 @@ nexGui.themes = {
     birds() {
         $('#tbl_2h3a').empty();
         $('#Khaseem-Birds-side').remove();
-        let container = $('<div class="birds-container"><div>').appendTo('#tbl_2h3a')
-        $('<div class="bird-container bird-container--one"></div>').append('<div class="bird bird--one"></div>').appendTo(container)
-        $('<div class="bird-container bird-container--two"></div>').append('<div class="bird bird--two"></div>').appendTo(container)
-        $('<div class="bird-container bird-container--three"></div>').append('<div class="bird bird--three"></div>').appendTo(container)
-        $('<div class="bird-container bird-container--four"></div>').append('<div class="bird bird--four"></div>').appendTo(container)
+        let container = $('<div class="birds-container nexGui-theme"><div>').appendTo('#tbl_2h3a')
+        $('<div class="bird-container bird-container--one nexGui-theme"></div>').append('<div class="bird bird--one"></div>').appendTo(container)
+        $('<div class="bird-container bird-container--two nexGui-theme"></div>').append('<div class="bird bird--two"></div>').appendTo(container)
+        $('<div class="bird-container bird-container--three nexGui-theme"></div>').append('<div class="bird bird--three"></div>').appendTo(container)
+        $('<div class="bird-container bird-container--four nexGui-theme"></div>').append('<div class="bird bird--four"></div>').appendTo(container)
 
 
         $('body').append(`<style id="Khaseem-Birds-side">

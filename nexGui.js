@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.3',
+    version: '0.4.4',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -420,7 +420,6 @@ var nexGui = {
         nexGui.def.layout();
         nexGui.target.layout();
         nexGui.self.layout();
-        nexGui.stream.layout();
     },
     notice(txt, html = false) {
         let msg = $('<span></span>', {
@@ -1318,7 +1317,6 @@ var nexGui = {
            let row = $("<div></div>").css({
                 display:'table-row'
             }).appendTo(tab)
-            $('<div></div>', {class: "timestamp"}).css({display:'table-cell',color:'grey'}).text(client.getTime('ms')).appendTo(row);
             let cellWhat = $('<div></div>').css({
                 display:'table-cell',
                     width: '50%'
@@ -1588,7 +1586,7 @@ var nexGui = {
 
     stream: {
         location: '#tbl_2h3b',
-        font_size: '12px',
+        font_size: '11px',
         msgLimit: 100,
         write(location, msg, timeFormat = 'noms') {
             if (timeFormat == 'noms') {
@@ -1596,7 +1594,7 @@ var nexGui = {
             } else {
                 $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").prependTo(msg);
             }
-            msg.appendTo(location);
+            $('<div></div>').append(msg).appendTo(location);
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()
             }
@@ -1612,16 +1610,18 @@ var nexGui = {
             $('<div></div>', {id:"nexGuiStream"})
                 .css({
                     'font-size':this.font_size,
-                    'line-height':'14px'
+                    'line-height':'13px'
                 })
                 .appendTo(this.location);
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
+                if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamAddDef = function nexGuiStreamAddDef(def) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+def&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostAff = function nexGuiStreamLostAff(aff) {
+                if (['blindness', 'deafness', 'insomnia'].indexOf(aff[0]) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-aff&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostDef = function nexGuiStreamLostDef(def) {
@@ -1797,5 +1797,109 @@ var nexGui = {
             /a squad of/,
             /swashbuckler/
         ]
+    },
+
+    aliases: {
+        call(alias, args = false) {
+            if (!Object.keys(nexGui.aliases).includes(alias)) {
+                nexGui.notice(`"ng  ${alias}" is not a valid command.`);
+                return;
+            }
+    
+            nexGui.aliases[alias](args);
+        },
+        load() {            
+            client.reflex_enable(reflex_find_by_name("group", "nexGui.colors", false, false, "nexMap"));
+            client.reflex_enable(reflex_find_by_name("group", "nexGui.stream", false, false, "nexMap"));
+            client.run_function('nexGui.colors', {}, 'Nexgui');
+            client.run_function('nexGui.occultist', {}, 'Nexgui');
+            client.run_function('nexGui.dragon', {}, 'Nexgui');
+
+            nexGui.startUp();
+        },
+        resize(args) {
+            args = args.split(" ");
+            if (Number.isInteger(parseInt(args[0])) && Number.isInteger(parseInt(args[1]))) {
+                nexGui.resize(parseInt(args[0]), parseInt(args[1]));
+            } else {
+                console.log('invalid numbers')
+            }
+        },
+        restore() {
+            nexGui.generateStyle();
+            nexGui.restoreLayout();
+        },
+        theme1() {
+            nexGui.themes.fireflies();
+        },
+        theme2() {
+            nexGui.themes.moonSmall();
+        },
+        theme3() {
+            nexGui.themes.moonMain();
+        },
+        theme4() {
+            nexGui.themes.birds();
+        },
+        summary() {
+            let cmds = [
+                {
+                    cmd: 'ng load',
+                    txt: 'Initial load of the GUI.',
+                },
+                {
+                    cmd: 'ng resize # #',
+                    txt: 'Resizes the 3 main columns of the GUI. Mainly for laptop users. The numbers provided are a percentage of the width. Example "ng resize 8 50".'
+                },
+                {
+                    cmd: 'ng restore',
+                    txt: 'Restores the display to base settings.'
+                },
+                {
+                    cmd: 'ng theme1',
+                    txt: 'Dark woods with fireflies theme.'
+                },
+                {
+                    cmd: 'ng theme2',
+                    txt: 'Night sky theme.'
+                },
+                {
+                    cmd: 'ng theme3',
+                    txt: 'Night sky in the main window'
+                },
+                {
+                    cmd: 'ng theme4',
+                    txt: 'Day time forest with birds.'
+                },
+            ];
+        
+            let tab = $("<table></table>", {
+                class: "mono",
+                style: "max-width:100%;border:1px solid GoldenRod;border-spacing:2px"
+            });
+            let header = $("<tr></tr>", {
+                style: "text-align:left;color:Ivory"
+            }).appendTo(tab);
+            $("<th></th>", {
+                style: 'width:10em'
+            }).text('Command').appendTo(header);
+            $("<th></th>", {
+                style: 'width:auto'
+            }).text('Summary').appendTo(header);
+        
+            for (let x in cmds) {
+                let row = $("<tr></tr>", {
+                    style: 'color:dimgrey;border-top: 1px solid GoldenRod;border-bottom: 1px solid GoldenRod;'
+                }).appendTo(tab);
+                $("<td></td>", {
+                    style: 'color:grey'
+                }).text(cmds[x].cmd).appendTo(row);
+                $("<td></td>", {
+                    style: 'color:grey;'
+                }).text(cmds[x].txt).appendTo(row);
+            }
+            nexGui.notice('Aliases for user interaction');
+            print(tab[0].outerHTML);
+        }
     }
 }

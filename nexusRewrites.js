@@ -603,10 +603,11 @@ client.handle_GMCP = function(data)
                 }
                 break;
 
+            /* nexGui we aren't using the buttons
             case "IRE.Display.ButtonActions":
                 bottom_buttons_set_defaults(gmcp_args);
                 break;
-
+            */
             case "Comm.Channel.Start":
                 var res = {};
                 res.channel = gmcp_args;

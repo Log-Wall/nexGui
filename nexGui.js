@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.4.9',
+    version: '0.5.0',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -70,6 +70,10 @@ var nexGui = {
             'a monolith sigil': {
                 color:'red',
                 text:'A MONOLITH SIGIL'
+            },
+            'some gold soveriegns': {
+                color: 'gold',
+                text: 'GOLD COINS'
             }
         },
         city: {
@@ -1617,14 +1621,14 @@ var nexGui = {
                 .appendTo(this.location);
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamAddDef = function nexGuiStreamAddDef(def) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+def&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostAff = function nexGuiStreamLostAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff[0]) != -1) {return;}
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-aff&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">-aff&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
             }
             let nexGuiStreamLostDef = function nexGuiStreamLostDef(def) {
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-def&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');

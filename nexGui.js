@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.0',
+    version: '0.5.1',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -9,112 +9,7 @@ var nexGui = {
         profession: 'none',
         classBalanceType: 'Entity' // This is from GMCP.CharStats or GMCP.Char.Vitals
     },
-    colors: {
-        highlightNames(txt) {
-            let names = Object.keys(nexGui.cdb.players);
-            for(let i = 0; i < names.length; i++) {
-                if (txt.indexOf(names[i]) != -1) {
-                    let name = nexGui.cdb.players[names[i]];
-                    txt = txt.replace(name.regex, `${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
-                        '<span style="color:red">(</span>' : 
-                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
-                        '<span style="color:white">(</span>' :
-                        ''
-                    }<span style="color:${nexGui.colors.city[name.city]}">${names[i]}</span>${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
-                        '<span style="color:red">)</span>' : 
-                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
-                        '<span style="color:white">)</span>' :
-                        ''
-                    }`)
-                }
-            }
-            return txt;
-        },
-        /* Experimental code. Appears to be orders of magnitude slower this way
-        highlightNames(txt) {
-            let players = Object.keys(nexGui.cdb.players);
-            let replacer = function(player) {
-                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
-                let entry = $('<span></span>').css({
-                    color: colour
-                }).text(player);
-                if (nexGui.room.enemies.indexOf(player) != -1) {
-                    $('<span>(</span>', {style:'color:red'}).prependTo(entry);
-                    $('<span>)</span>', {style:'color:red'}).appendTo(entry);
-                } else if (nexGui.room.allies.indexOf(player) != -1) {
-                    $('<span>(</span>', {style:'color:white'}).prependTo(entry);
-                    $('<span>)</span>', {style:'color:white'}).appendTo(entry);
-                }
-                return entry[0];
-            }
-            let replacer1 = function(player) {
-                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
-                if (nexGui.room.enemies.indexOf(player) != -1) {
-                    let p = '<span style="color:red">(</span>';
-                    let a = '<span style="color:red">)</span>';
-                } else if (nexGui.room.allies.indexOf(player) != -1) {
-                    let p = '<span style="color:white">(</span>';
-                    let a = '<span style="color:white">)</span>';
-                }
-                
-                return `${p?p:''}<span style="color:${colour}">${player}</span>${a?a:''}`;
-            }
-            for (let i = 0; i < players.length; i++) {
-                
-                txt = txt.replace(nexGui.cdb.players[players[i]].regex, replacer(players[i]));
-            }
-
-            return txt;
-        },*/
-        room: {
-            'a monolith sigil': {
-                color:'red',
-                text:'A MONOLITH SIGIL'
-            },
-            'some gold soveriegns': {
-                color: 'gold',
-                text: 'GOLD COINS'
-            }
-        },
-        city: {
-            "(hidden)": "gray",
-            "(none)": "gray",
-            ashtan: "#990099",
-            cyrene: "#009999",
-            eleusis: "#00e600",
-            hashan: "#999900",
-            mhaldor: "#e60000",
-            targossas: "#ffffff",
-            garden: "yellow"
-        },
-        attacks: {
-            warp:'orange',
-            incantation:'orange',
-            gut:'orange',
-            frostwave:'orange',
-            dragonchill:'orange',
-            ague:'orange',
-            tailsmash:'orange',
-            override:'orange',
-            garrote:'orange',
-            bleed:'orange',
-            doubleslash:'orange',
-            jab:'orange',
-            iron: 'orange'
-        },
-        actions: {
-            eat: {color: 'gold', text:'Eat'},
-            smoke: {color: 'orange', text:'Smoke'},
-            apply: {color: 'aquamrine', text:'Apply'},
-            sip: {color: 'HotPink', text:'Sip'},
-            tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
-        },
-        subjects: {
-            shield: {color: 'cyan', text:'Shield'},
-            tree: {color: 'lawngreen', text:'Tree'}
-        }
-        
-    },
+    
     inject(rule) {
         if (!$('#client_nexgui-rules').length) {
             $('body').append('<div id="client_nexgui-rules"></div>')
@@ -419,7 +314,7 @@ var nexGui = {
     },
     restoreLayout() {
         ['#tbl_5a', '#tbl_5b', '#tlb_5c', '#tlb_5d'].forEach(e => $(e).empty());
-        ['#tbl_2h3a', '#tlb_2h4b'].forEach(e => $(e).empty());
+        $('#tlb_2h4b').empty();
         nexGui.pvp.layout();
         nexGui.timer.layout();
         nexGui.def.layout();
@@ -660,6 +555,115 @@ var nexGui = {
             $('#character_module_class').css('opacity', '15%')
             return
         }
+    },
+
+    colors: {
+        highlightNames(txt) {
+            let names = Object.keys(nexGui.cdb.players);
+            for(let i = 0; i < names.length; i++) {
+                if (txt.indexOf(names[i]) != -1) {
+                    let name = nexGui.cdb.players[names[i]];
+                    txt = txt.replace(name.regex, `${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:red">(</span>' : 
+                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:white">(</span>' :
+                        ''
+                    }<span style="color:${nexGui.colors.city[name.city]}">${names[i]}</span>${nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:red">)</span>' : 
+                        nexGui.room.enemies.indexOf(names[i]) != -1 ? 
+                        '<span style="color:white">)</span>' :
+                        ''
+                    }`)
+                }
+            }
+            return txt;
+        },
+        /* Experimental code. Appears to be orders of magnitude slower this way
+        highlightNames(txt) {
+            let players = Object.keys(nexGui.cdb.players);
+            let replacer = function(player) {
+                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
+                let entry = $('<span></span>').css({
+                    color: colour
+                }).text(player);
+                if (nexGui.room.enemies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:red'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:red'}).appendTo(entry);
+                } else if (nexGui.room.allies.indexOf(player) != -1) {
+                    $('<span>(</span>', {style:'color:white'}).prependTo(entry);
+                    $('<span>)</span>', {style:'color:white'}).appendTo(entry);
+                }
+                return entry[0];
+            }
+            let replacer1 = function(player) {
+                let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
+                if (nexGui.room.enemies.indexOf(player) != -1) {
+                    let p = '<span style="color:red">(</span>';
+                    let a = '<span style="color:red">)</span>';
+                } else if (nexGui.room.allies.indexOf(player) != -1) {
+                    let p = '<span style="color:white">(</span>';
+                    let a = '<span style="color:white">)</span>';
+                }
+                
+                return `${p?p:''}<span style="color:${colour}">${player}</span>${a?a:''}`;
+            }
+            for (let i = 0; i < players.length; i++) {
+                
+                txt = txt.replace(nexGui.cdb.players[players[i]].regex, replacer(players[i]));
+            }
+
+            return txt;
+        },*/
+        room: {
+            'a monolith sigil': {
+                color:'red',
+                text:'A MONOLITH SIGIL'
+            },
+            'some gold soveriegns': {
+                color: 'gold',
+                text: 'GOLD COINS'
+            }
+        },
+        city: {
+            "(hidden)": "gray",
+            "(none)": "gray",
+            ashtan: "#990099",
+            cyrene: "#009999",
+            eleusis: "#00e600",
+            hashan: "#999900",
+            mhaldor: "#e60000",
+            targossas: "#ffffff",
+            garden: "yellow"
+        },
+        attacks: {
+            warp:'orange',
+            incantation:'orange',
+            gut:'orange',
+            frostwave:'orange',
+            dragonchill:'orange',
+            ague:'orange',
+            tailsmash:'orange',
+            override:'orange',
+            garrote:'orange',
+            bleed:'orange',
+            doubleslash:'orange',
+            jab:'orange',
+            iron: 'orange',
+            frostrive: 'orange'
+        },
+        actions: {
+            eat: {color: 'gold', text:'Eat'},
+            smoke: {color: 'orange', text:'Smoke'},
+            apply: {color: 'aquamrine', text:'Apply'},
+            sip: {color: 'HotPink', text:'Sip'},
+            tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
+            attack: {color: 'red', text: "Attack"}
+        },
+        subjects: {
+            shield: {color: 'cyan', text:'((Shield))'},
+            tree: {color: 'lawngreen', text:'Tree'}
+        }
+        
     },
 
     room: {
@@ -1209,8 +1213,12 @@ var nexGui = {
             let c = false;
             let t = false;
             if (nexGui.colors.actions[what]) {
-                c = nexGui.colors.actions[what].color;
-                t = nexGui.colors.actions[what].text;
+                whatColor = nexGui.colors.actions[what].color;
+                whatText = nexGui.colors.actions[what].text;
+            }
+            if (nexGui.colors.subjects[subject]) {
+                subjectColor = nexGui.colors.subjects[subject].color;
+                subjectText = nexGui.colors.subjects[subject].text;
             }
 
             
@@ -1233,12 +1241,13 @@ var nexGui = {
             $('<div></div>').css({
                 display:'table-cell',
                 width: '30%',
-                color: `${c || ''}`
-            }).text(`${t || what}`).appendTo(row);
+                color: `${whatColor || ''}`
+            }).text(`${whatText || what}`).appendTo(row);
 
             $("<div></div>").css({
-                display:'table-cell'
-            }).append($('<span></span>', {style:'color:white'}).text(subject)).appendTo(row)
+                display:'table-cell',
+                color: `${subjectColor || ''}`
+            }).text(`${subjectText || subject}`).appendTo(row)
 
             nexPrint(tab[0].outerHTML);  
         },
@@ -1353,7 +1362,7 @@ var nexGui = {
                 }
             }
 
-            nexGui.stream.write('#tbl_2h3a', tab);  
+            nexGui.stream.write('#nexGuiAttackStream', tab);  
         }
     },
 
@@ -1515,10 +1524,48 @@ var nexGui = {
                 start() {$(`#${id}Timer`).text(this.duration)}
             }
         },
+        /*
+        add(id, label, duration = 0) {
+            let row = $('<div></div>').css({display: 'table-row'}).appendTo('#timerTable')
+            $('<div></div>').css({
+                padding:'0px 5px 0px 0px',
+                display:'table-cell',
+                'font-weight':'bold',
+                'font-size':`${this.font_size}`
+            }).text(label).appendTo(row);
+            $('<div></div>', {id: `${id}Timer`, class: "nexGui_timer"}).css({
+                padding:'0px 5px 0px 0px',
+                width:'4ch',
+                'text-align':'right'
+            }).text(0).appendTo(row);
+            this[id] = {
+                id: id,
+                duration: duration+1,
+                start() {$(`#${id}Timer`).text(this.duration)}
+            }
+        },
+        */
         remove(id) {
             $(`#${id}Timer`).remove();
             delete this[id];
         },
+        /*
+        layout() {
+            $(this.location).empty();
+            // Table for holding all of our timers.
+            let timerTable = $('<div></div>', {
+                id: 'nexTimerTable',
+                'font-size': this.font_size,
+                display: 'table',
+                'text-align':'left',
+                //'table-layout':'fixed',
+                'width': 'auto',
+                'max-width':'100%'})
+            
+            timerTable.appendTo(this.location);
+            this._start();
+        }
+        */
         layout() {
             $(this.location).empty();
             // Table for holding all of our timers.
@@ -1537,7 +1584,6 @@ var nexGui = {
             timerTable.appendTo(this.location);
             this._start();
         }
-    
     },
 
     feed: {
@@ -1703,7 +1749,7 @@ var nexGui = {
             data.time = client.Date();
             data.user = GMCP.Status.name;
             if (this.players[data.name]) {
-                if (data.city == "(hidden)" || data.city == "(none") {
+                if (data.city == "(hidden)" || data.city == "(none)") {
                     data.city = this.players[data.name].city;
                 }
                 nexGui.mongo.db.updateOne({'name':data.name}, data);

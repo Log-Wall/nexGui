@@ -1545,16 +1545,14 @@ var nexGui = {
         
         add1(id, label, duration = 0) {
             let row = $('<div></div>').css({
-                width: '100%',
-                height: '15px'
+                position: 'relative',
+                height: '15px',
+                border: '2px silver solid',
+                'border-radius': '4px'
             }).appendTo('#nexTimerTable1')
             $('<div></div>', {id: `${id}-gauge`}).css({
-                background:'orange',
-                height:'14px',
+                height:'100%',
                 width:'100%',
-                'border-right':'1px silver solid',
-                'border-top-right-radius':'4px',
-                'border-bottom-right-radius':'4px',
                 'transform-origin': 'left center',
                 transform: 'scaleX(1)',
                 'z-index': 1,
@@ -1564,8 +1562,10 @@ var nexGui = {
             $('<div></div>').css({
                 position: 'relative',
                 top: '-100%',
-                width: '75%',
+                width: '65%',
                 'z-index': 3,
+                'font-size': 13,
+                margin: '0px 0px 0px 5px',
                 display: 'inline-block'
             }).text(label).appendTo(row);
             $('<div></div>').css({

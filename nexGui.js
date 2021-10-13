@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.1',
+    version: '0.5.2',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -1210,8 +1210,10 @@ var nexGui = {
         actionMsg(who = '', what = '', subject = '') {
             if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}
             
-            let c = false;
-            let t = false;
+            let whatColor = false;
+            let whatText = false;
+            let subjectColor = false;
+            let subjectText = false;
             if (nexGui.colors.actions[what]) {
                 whatColor = nexGui.colors.actions[what].color;
                 whatText = nexGui.colors.actions[what].text;

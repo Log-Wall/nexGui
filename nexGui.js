@@ -1516,47 +1516,77 @@ var nexGui = {
             });
         },
         add(id, label, duration = 0) {
-            $('<tr></tr>')
-                    .append($('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold;font-size:${this.font_size}`}).text(label))
-                    .append($('<td></td>', {id: `${id}Timer`, class: "nexGui_timer", style: "padding:0px 5px 0px 0px;width:4ch;text-align:right"}).text(0))
-                    .appendTo('#nexTimerTable');
-            this[id] = {
-                id: id,
-                duration: duration+1,
-                start() {$(`#${id}Timer`).text(this.duration)}
-            }
-        },
-        /*
-        add(id, label, duration = 0) {
-            let row = $('<div></div>').css({display: 'table-row'}).appendTo('#timerTable')
-            $('<div></div>').css({
+            let row = $('<tr></tr>').appendTo('#nexTimerTable');
+            $('<div></div>', {id:`${id}Timer-gauge`}).css({
+                position:'absolute',
+                width: '100%',
+                height: `13px`,
+                background: 'green'
+            }).appendTo(row)
+            $('<td></td>').css({
                 padding:'0px 5px 0px 0px',
-                display:'table-cell',
+                display:'block',
                 'font-weight':'bold',
                 'font-size':`${this.font_size}`
             }).text(label).appendTo(row);
-            $('<div></div>', {id: `${id}Timer`, class: "nexGui_timer"}).css({
+            $('<td></td>', {id: `${id}Timer`, class: "nexGui_timer"}).css({
                 padding:'0px 5px 0px 0px',
                 width:'4ch',
-                'text-align':'right'
-            }).text(0).appendTo(row);
+                'text-align':'right',
+                display:'block'
+        }).text(0).appendTo(row)
+                   
             this[id] = {
                 id: id,
                 duration: duration+1,
                 start() {$(`#${id}Timer`).text(this.duration)}
             }
         },
-        */
+        
+        add1(id, label, duration = 0) {
+            let row = $('<div></div>').css({
+                width: '100%',
+                height: '15px'
+            }).appendTo('#nexTimerTable1')
+            $('<div></div>', {id: `${id}-gauge`}).css({
+                background:'orange',
+                height:'14px',
+                width:'100%',
+                'border-right':'1px silver solid',
+                'border-top-right-radius':'4px',
+                'border-bottom-right-radius':'4px',
+                'transform-origin': 'left center',
+                transform: 'scaleX(1)',
+                'z-index': 1,
+                'will-change': 'transform, color',
+                position: 'relative'
+            }).appendTo(row);
+            $('<div></div>').css({
+                position: 'relative',
+                top: '-100%',
+                width: '75%',
+                'z-index': 3,
+                display: 'inline-block'
+            }).text(label).appendTo(row);
+            $('<div></div>').css({
+                position: 'relative',
+                top: '-100%',
+                width: '25%',
+                'z-index': 3,
+                display: 'inline-block'
+            }).text(duration).appendTo(row);
+        },
+        
         remove(id) {
             $(`#${id}Timer`).remove();
             delete this[id];
         },
-        /*
-        layout() {
-            $(this.location).empty();
+        
+        layout1() {
+            //$(this.location).empty();
             // Table for holding all of our timers.
             let timerTable = $('<div></div>', {
-                id: 'nexTimerTable',
+                id: 'nexTimerTable1',
                 'font-size': this.font_size,
                 display: 'table',
                 'text-align':'left',
@@ -1565,9 +1595,9 @@ var nexGui = {
                 'max-width':'100%'})
             
             timerTable.appendTo(this.location);
-            this._start();
-        }
-        */
+            //this._start();
+        },
+        
         layout() {
             $(this.location).empty();
             // Table for holding all of our timers.

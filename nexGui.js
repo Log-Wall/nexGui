@@ -1511,40 +1511,75 @@ var nexGui = {
                 {transform: 'scaleX(1)'}
             ],
             gaugeColorRG: [
-                {background:'red'},
+                {background:'crimson'},
                 {background:'red'},
                 {background:'orange'},
                 {background:'yellow'},
                 {background:'green'}
             ],
+            gaugeEmpty: [
+                {transform: 'scaleX(1)'},
+                {transform: 'scaleX(0)'}
+            ],
+            gaugeColorGR: [
+                {background:'green'},
+                {background:'yellow'},
+                {background:'orange'},
+                {background:'red'},
+                {background:'crimson'}
+            ],
         },
         timers: {},
         Timer: class Timer {
-            constructor(id, label, duration=0, style='grow', place='top') {
+            constructor(id, label, duration=0, style='grow', location='#nexTimerTableTop') {
                 this._id = id;
                 this._label = label;
                 this._duration = duration;
                 this._style = style;
-                this._place = place;
+                this._location = location;
                 this.addTimer();
                 this._target = document.getElementById(`${this._id}-gauge`);
                 this._interval = {};
-                this._animationScale = this._target.animate(nexGui.timer.animations.gaugeFill, {
-                    duration:this._duration*1000, 
-                    easing:'linear', 
-                    fill:'forwards', 
-                    composite: 'replace'
-                });
-                this._animationColor = this._target.animate(nexGui.timer.animations.gaugeColorRG, {
-                    duration:this._duration*1000, 
-                    easing:'linear', 
-                    fill:'forwards', 
-                    composite: 'replace'
-                });
+                if(style == 'grow') {
+                    this._animationScale = this._target.animate(nexGui.timer.animations.gaugeFill, {
+                        duration:this._duration*1000, 
+                        easing:'linear', 
+                        fill:'forwards', 
+                        composite: 'replace'
+                    });
+                    this._animationColor = this._target.animate(nexGui.timer.animations.gaugeColorRG, {
+                        duration:this._duration*1000, 
+                        easing:'linear', 
+                        fill:'forwards', 
+                        composite: 'replace'
+                    });
+                    this._animationScale.onfinish = function() {
+                        clearInterval(this._interval);
+                        $(`#${this._id}-text`).text(this._duration);
+                    }.bind(this);
+                } else {
+                    this._animationScale = this._target.animate(nexGui.timer.animations.gaugeEmpty, {
+                        duration:this._duration*1000, 
+                        easing:'linear', 
+                        fill:'forwards', 
+                        composite: 'replace'
+                    });
+                    this._animationColor = this._target.animate(nexGui.timer.animations.gaugeColorGR, {
+                        duration:this._duration*1000, 
+                        easing:'linear', 
+                        fill:'forwards', 
+                        composite: 'replace'
+                    });
+                    this._animationScale.onfinish = function() {
+                        clearInterval(this._interval);
+                        $(`#${this._id}-text`).text(0);
+                    }.bind(this);
+                }
                 this.stop();
             }
             get target() {return this._target;}
             get interval() {return this._interval;}
+            set target(id) {this._target = document.getElementById(`${id}-gauge`);}
             addTimer() {
                 let row = $('<div></div>').css({
                     position: 'relative',
@@ -1553,7 +1588,7 @@ var nexGui = {
                     'border-radius': '4px',
                     overflow: 'hidden',
                     margin:'3px 0px'
-                }).appendTo(`${this._place == 'top' ? '#nexTimerTableTop' : '#nexTimerTableBot'}`)
+                }).appendTo(this._location)
                 $('<div></div>', {id: `${this._id}-gauge`}).css({
                     height:'100%',
                     width:'100%',
@@ -1578,38 +1613,39 @@ var nexGui = {
                     'z-index': 3,
                     display: 'inline-block'
                 }).text(this._duration).appendTo(row);
+                
             }
             start() {
-                if(this._style == 'grow') {
-                    this._animationScale.play();
-                    this._animationColor.play();
-                } else {
-                    this._animationScale.reverse();
-                    this._animationColor.reverse();
-                }
-                this._interval = setInterval(function() {$(`#${this._id}-text`).text(parseFloat(this._duration-this._animationScale.currentTime/1000).toFixed(1))}.bind(this),100);
-                this._animationScale.onfinish = function() {
-                    clearInterval(this._interval);
-                    $(`#${this._id}-text`).text(this._duration);
-                }.bind(this);
+                this._animationScale.cancel();
+                this._animationColor.cancel();
+                this._animationScale.play();
+                this._animationColor.play();
+
+                clearInterval(this._interval);
+                this._interval = setInterval(function() {$(`#${this._id}-text`).text(parseFloat(this._duration-this._animationScale.currentTime/1000).toFixed(1));}.bind(this),100);
             }
             stop() {
                 this._animationScale.finish();
                 this._animationColor.finish();
             }
         },
-        add(id, label, duration = 0, style = 'grow', place='top') {
-            this.timers[id] = new this.Timer(id, label, duration, style, place);
+        add(id, label, duration = 0, style = 'grow', location='#nexTimerTableTop') {
+            if (this.timers[id]) {
+                clearInterval(this.timers[id]._interval);
+                delete this.timers[id];   
+            }            
+            
+            this.timers[id] = new this.Timer(id, label, duration, style, location);           
         },
         layout() {
             $(this.location).empty();
-            $(this.location).css({
+            $('<div></div>', {id:"nexTimerTable"}).css({
                 display: 'flex',
                 'flex-direction': 'column',
                 'justify-content': 'space-between',
                 height: '100%'
-            });
-            $('<div></div>', {style: 'text-decoration:underline;font-weight:bold;text-align:center'}).text('Timers').prependTo('#nexTimerTable1');
+            }).appendTo(this.location);
+            $('<div></div>', {style: 'text-decoration:underline;font-weight:bold;text-align:center'}).text('Timers').prependTo(this.location);
             let timerTop = $('<div></div>', {id: 'nexTimerTableTop'}).css({
                 'font-size': this.font_size,
                 color: this.font_color,
@@ -1628,8 +1664,8 @@ var nexGui = {
                 'text-shadow':'2px 1px black'
             })
             
-            timerTop.appendTo(this.location);
-            timerBot.appendTo(this.location);
+            timerTop.appendTo('#nexTimerTable');
+            timerBot.appendTo('#nexTimerTable');
 
         }
         /*addORIGINAL(id, label, duration = 0) {

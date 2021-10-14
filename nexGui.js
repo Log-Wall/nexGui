@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.2',
+    version: '0.5.3',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -12,10 +12,10 @@ var nexGui = {
     
     inject(rule) {
         if (!$('#client_nexgui-rules').length) {
-            $('body').append('<div id="client_nexgui-rules"></div>')
+            $('head').append('<style id="client_nexgui-rules"></style>')
         };
 
-        $('#client_nexgui-rules').append('<style>' + rule + '</style></div>')
+        document.getElementById('Khaseem-counter').innerHTML += rule+"\n";
     },
     generateStyle() {
         $('#client_nexgui-rules').remove();
@@ -56,6 +56,9 @@ var nexGui = {
         this.inject('.ui-tabs {padding:0}');
         this.inject('#channel_all div {margin-bottom:5px}');
         this.inject('body {line-height:18px}');
+
+        // Timer gauges
+
 
         // Mouse over API display
 
@@ -1432,7 +1435,8 @@ var nexGui = {
             .css({
                 color: this.font_color,
                 'font-size': this.font_size,
-                'background-color': this.background_color,
+                //'background-color': this.background_color,
+                background: 'radial-gradient(black, silver)',
                 width: '100%',
                 'text-align': 'center',
                 //'font-weight': 'bold',
@@ -1499,23 +1503,136 @@ var nexGui = {
 
     timer: {
         location: '#tbl_5b',
-        font_size: '11px',
-        _timer: {},
-        _start() {
-            console.log('nexGui.timer._start() called. Timer now running at 1 second interval');
-            this._stop();
-            this._timer = setInterval(nexGui.timer._callBack, 1000);
+        font_size: '12px',
+        font_color: 'white',
+        animations: {
+            gaugeFill: [
+                {transform: 'scaleX(0)'},
+                {transform: 'scaleX(1)'}
+            ],
+            gaugeColorRG: [
+                {background:'red'},
+                {background:'red'},
+                {background:'orange'},
+                {background:'yellow'},
+                {background:'green'}
+            ],
         },
-        _stop() {clearInterval(this._timer)},
-        _callBack() {
-            $('.nexGui_timer').each(function() {
-                let num = parseInt($(this).text());
-                if (num == 0) {return};
-                num--;
-                $(this).text(num);
+        timers: {},
+        Timer: class Timer {
+            constructor(id, label, duration=0, style='grow', place='top') {
+                this._id = id;
+                this._label = label;
+                this._duration = duration;
+                this._style = style;
+                this._place = place;
+                this.addTimer();
+                this._target = document.getElementById(`${this._id}-gauge`);
+                this._interval = {};
+                this._animationScale = this._target.animate(nexGui.timer.animations.gaugeFill, {
+                    duration:this._duration*1000, 
+                    easing:'linear', 
+                    fill:'forwards', 
+                    composite: 'replace'
+                });
+                this._animationColor = this._target.animate(nexGui.timer.animations.gaugeColorRG, {
+                    duration:this._duration*1000, 
+                    easing:'linear', 
+                    fill:'forwards', 
+                    composite: 'replace'
+                });
+                this.stop();
+            }
+            get target() {return this._target;}
+            get interval() {return this._interval;}
+            addTimer() {
+                let row = $('<div></div>').css({
+                    position: 'relative',
+                    height: '16px',
+                    border: '1px silver solid',
+                    'border-radius': '4px',
+                    overflow: 'hidden',
+                    margin:'3px 0px'
+                }).appendTo(`${this._place == 'top' ? '#nexTimerTableTop' : '#nexTimerTableBot'}`)
+                $('<div></div>', {id: `${this._id}-gauge`}).css({
+                    height:'100%',
+                    width:'100%',
+                    'transform-origin': 'left center',
+                    transform: 'scaleX(1)',
+                    'z-index': 1,
+                    'will-change': 'transform, color',
+                    position: 'relative'
+                }).appendTo(row);
+                $('<div></div>').css({
+                    position: 'relative',
+                    top: '-100%',
+                    width: '65%',
+                    'z-index': 3,
+                    margin: '0px 0px 0px 5px',
+                    display: 'inline-block'
+                }).text(this._label).appendTo(row);
+                $('<div></div>', {id: `${this._id}-text`}).css({
+                    position: 'relative',
+                    top: '-100%',
+                    width: '25%',
+                    'z-index': 3,
+                    display: 'inline-block'
+                }).text(this._duration).appendTo(row);
+            }
+            start() {
+                if(this._style == 'grow') {
+                    this._animationScale.play();
+                    this._animationColor.play();
+                } else {
+                    this._animationScale.reverse();
+                    this._animationColor.reverse();
+                }
+                this._interval = setInterval(function() {$(`#${this._id}-text`).text(parseFloat(this._duration-this._animationScale.currentTime/1000).toFixed(1))}.bind(this),100);
+                this._animationScale.onfinish = function() {
+                    clearInterval(this._interval);
+                    $(`#${this._id}-text`).text(this._duration);
+                }.bind(this);
+            }
+            stop() {
+                this._animationScale.finish();
+                this._animationColor.finish();
+            }
+        },
+        add(id, label, duration = 0, style = 'grow', place='top') {
+            this.timers[id] = new this.Timer(id, label, duration, style, place);
+        },
+        layout() {
+            $(this.location).empty();
+            $(this.location).css({
+                display: 'flex',
+                'flex-direction': 'column',
+                'justify-content': 'space-between',
+                height: '100%'
             });
-        },
-        add(id, label, duration = 0) {
+            $('<div></div>', {style: 'text-decoration:underline;font-weight:bold;text-align:center'}).text('Timers').prependTo('#nexTimerTable1');
+            let timerTop = $('<div></div>', {id: 'nexTimerTableTop'}).css({
+                'font-size': this.font_size,
+                color: this.font_color,
+                display: 'flex',
+                'flex-direction':'column',
+                'width': '100%',
+                'text-shadow':'2px 1px black'
+            });
+
+            let timerBot = $('<div></div>', {id: 'nexTimerTableBot'}).css({
+                'font-size': this.font_size,
+                color: this.font_color,
+                display: 'flex',
+                'flex-direction':'column',
+                'width': '100%',
+                'text-shadow':'2px 1px black'
+            })
+            
+            timerTop.appendTo(this.location);
+            timerBot.appendTo(this.location);
+
+        }
+        /*addORIGINAL(id, label, duration = 0) {
             let row = $('<tr></tr>').appendTo('#nexTimerTable');
             $('<div></div>', {id:`${id}Timer-gauge`}).css({
                 position:'absolute',
@@ -1543,62 +1660,12 @@ var nexGui = {
             }
         },
         
-        add1(id, label, duration = 0) {
-            let row = $('<div></div>').css({
-                position: 'relative',
-                height: '15px',
-                border: '2px silver solid',
-                'border-radius': '4px'
-            }).appendTo('#nexTimerTable1')
-            $('<div></div>', {id: `${id}-gauge`}).css({
-                height:'100%',
-                width:'100%',
-                'transform-origin': 'left center',
-                transform: 'scaleX(1)',
-                'z-index': 1,
-                'will-change': 'transform, color',
-                position: 'relative'
-            }).appendTo(row);
-            $('<div></div>').css({
-                position: 'relative',
-                top: '-100%',
-                width: '65%',
-                'z-index': 3,
-                'font-size': 13,
-                margin: '0px 0px 0px 5px',
-                display: 'inline-block'
-            }).text(label).appendTo(row);
-            $('<div></div>').css({
-                position: 'relative',
-                top: '-100%',
-                width: '25%',
-                'z-index': 3,
-                display: 'inline-block'
-            }).text(duration).appendTo(row);
-        },
-        
         remove(id) {
             $(`#${id}Timer`).remove();
             delete this[id];
-        },
+        },*/
         
-        layout1() {
-            //$(this.location).empty();
-            // Table for holding all of our timers.
-            let timerTable = $('<div></div>', {
-                id: 'nexTimerTable1',
-                'font-size': this.font_size,
-                display: 'table',
-                'text-align':'left',
-                //'table-layout':'fixed',
-                'width': 'auto',
-                'max-width':'100%'})
-            
-            timerTable.appendTo(this.location);
-            //this._start();
-        },
-        
-        layout() {
+        /*layoutORIGINAL() {
             $(this.location).empty();
             // Table for holding all of our timers.
             let timerTable = $('<table></table>', {
@@ -1608,14 +1675,15 @@ var nexGui = {
                 //'table-layout':'fixed',
                 'width': 'auto',
                 'max-width':'100%',
-                'border-spacing':'0px'})
+                'border-spacing':'0px'
+            })
             $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Timers').appendTo(timerTable);
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
             $('<th></th>', {style:"width:4ch"}).appendTo(timerTable);
             
             timerTable.appendTo(this.location);
             this._start();
-        }
+        }*/
     },
 
     feed: {

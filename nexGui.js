@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.3',
+    version: '0.5.5',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -15,7 +15,7 @@ var nexGui = {
             $('head').append('<style id="client_nexgui-rules"></style>')
         };
 
-        document.getElementById('Khaseem-counter').innerHTML += rule+"\n";
+        document.getElementById('client_nexgui-rules').innerHTML += rule+"\n";
     },
     generateStyle() {
         $('#client_nexgui-rules').remove();

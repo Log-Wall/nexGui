@@ -1436,11 +1436,13 @@ var nexGui = {
                 color: this.font_color,
                 'font-size': this.font_size,
                 //'background-color': this.background_color,
-                background: 'radial-gradient(black, silver)',
+                background: 'radial-gradient(white, black)',
+                'border-radius': '10px',
                 width: '100%',
                 'text-align': 'center',
-                //'font-weight': 'bold',
-                opacity: '60%',
+                'font-weight': '700',
+                opacity: '80%',
+                'text-shadow':'2px 1px lightpink',
                 margin: '2px 0px 0px 0px'
             })
             .text(def.toProperCase())

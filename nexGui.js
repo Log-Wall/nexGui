@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.6',
+    version: '0.5.7',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -1643,7 +1643,8 @@ var nexGui = {
             $(this.location).empty();
             $(this.location).css({
                 display: 'flex',
-                'flex-direction': 'column'
+                'flex-direction': 'column',
+                height: '100%'
             });
             $('<div></div>', {id:"nexTimerTable"}).css({
                 display: 'flex',

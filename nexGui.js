@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.7',
+    version: '0.5.8',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -20,16 +20,17 @@ var nexGui = {
     generateStyle() {
         $('#client_nexgui-rules').remove();
         //this.inject('.nexswitch {position: relative;display: inline-block;width: 38px;height: 21px;}');
-        this.inject('.nexswitch {position: relative;display: inline-block;width: 26px;height: 16px;}');
-        this.inject('.nexswitch input {opacity: 0;width: 0;height: 0;}');
+        this.inject('.nexGuiSwitch {position: relative;display: inline-block;width: 26px;height: 16px;}');
+        this.inject('.nexGuiSwitch input {opacity: 0;width: 0;height: 0;}');
         //this.inject('.nexslider {position: absolute;cursor: pointer;top: 0;left: 0;right: 0;bottom: 0;background-color: #555555;-webkit-transition: .4s;transition: .4s;border-radius: 24px;}');
-        this.inject('.nexslider {position: absolute;cursor: pointer;top: 0;left: 0;right: 0;bottom: 0;background-color: #555555;-webkit-transition: .4s;transition: .4s;border-radius: 16px;}');       
+        this.inject('.nexGuiSlider {position: absolute;cursor: pointer;top: 0;left: 0;right: 0;bottom: 0;background-color: #555555;-webkit-transition: .4s;transition: .4s;border-radius: 16px;}');       
         //this.inject('.nexslider:before {position: absolute;content: "";height: 15px;width: 15px;left: 3px;bottom: 3px;background-color: white;-webkit-transition: .4s;transition: .4s;border-radius: 50%;}');
-        this.inject('.nexslider:before {position: absolute;content: "";height: 10px;width: 10px;left: 3px;bottom: 3px;background-color: white;-webkit-transition: .4s;transition: .4s;border-radius: 50%;}');
-        this.inject('input:checked + .nexslider {background-color: #2196F3;}');
-        this.inject('input:focus + .nexslider {box-shadow: 0 0 1px #2196F3;}');
+        this.inject('.nexGuiSlider:before {position: absolute;content: "";height: 10px;width: 10px;left: 3px;bottom: 3px;background-color: white;-webkit-transition: .4s;transition: .4s;border-radius: 50%;}');
+        this.inject('input:checked + .nexGuiSlider {background-color: #2196F3;}');
+        this.inject('input:focus + .nexGuiSlider {box-shadow: 0 0 1px #2196F3;}');
         //this.inject('input:checked + .nexslider:before {-webkit-transform: translateX(16px);-ms-transform: translateX(16px);transform: translateX(16px);}');
-        this.inject('input:checked + .nexslider:before {-webkit-transform: translateX(10.7px);-ms-transform: translateX(10.7px);transform: translateX(10.7px);}');
+        this.inject('input:checked + .nexGuiSlider:before {-webkit-transform: translateX(10.7px);-ms-transform: translateX(10.7px);transform: translateX(10.7px);}');
+        
         this.inject('.nexcontainer { display: flex; }');
         this.inject('.nexfixed { width: 200px; }');
         this.inject('.nexflex-item { flex-grow: 1; }');
@@ -106,17 +107,17 @@ var nexGui = {
         $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).text(title).appendTo(optionRow);
 
         let lab = $('<label></label>', {
-            'class': 'nexswitch nexInput'
+            'class': 'nexGuiSwitch nexInput'
         });
         $('<input></input>', {
             type: "checkbox",
-            'class': 'nexbox nexInput'
+            'class': 'nexGuiBox nexGuiInput'
         })
             .prop('checked', option)
         	.on('change', handler)
             .appendTo(lab);
         $('<span></span>', {
-            'class': 'nexslider nexInput'
+            'class': 'nexGuiSlider nexGuiInput'
         }).appendTo(lab);
         $('<td></td>').append(lab).appendTo(optionRow);
         optionRow.appendTo(container);
@@ -1583,38 +1584,43 @@ var nexGui = {
             get interval() {return this._interval;}
             set target(id) {this._target = document.getElementById(`${id}-gauge`);}
             addTimer() {
-                let row = $('<div></div>').css({
-                    position: 'relative',
-                    height: '16px',
-                    border: '1px silver solid',
-                    'border-radius': '4px',
-                    overflow: 'hidden',
-                    margin:'3px 0px'
-                }).appendTo(this._location)
-                $('<div></div>', {id: `${this._id}-gauge`}).css({
-                    height:'100%',
-                    width:'100%',
-                    'transform-origin': 'left center',
-                    transform: 'scaleX(1)',
-                    'z-index': 1,
-                    'will-change': 'transform, color',
-                    position: 'relative'
-                }).appendTo(row);
-                $('<div></div>').css({
-                    position: 'relative',
-                    top: '-100%',
-                    width: '65%',
-                    'z-index': 3,
-                    margin: '0px 0px 0px 5px',
-                    display: 'inline-block'
-                }).text(this._label).appendTo(row);
-                $('<div></div>', {id: `${this._id}-text`}).css({
-                    position: 'relative',
-                    top: '-100%',
-                    width: '25%',
-                    'z-index': 3,
-                    display: 'inline-block'
-                }).text(this._duration).appendTo(row);
+                let row = $('<div></div>', {class: "nexGuiTimerContainer"}).appendTo(this._location)
+                $('<div></div>', {id: `${this._id}-gauge`, class: "nexGuiTimerGauge"}).appendTo(row);
+                $('<div></div>', {class: "nexGuiTimerLabel"}).text(this._label).appendTo(row);
+                $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).text(this._duration).appendTo(row);
+
+                nexGui.inject(`.nexGuiTimerContainer {
+                    position: relative;
+                    height: 16px;
+                    border: 1px silver solid;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    margin:3px 0px
+                }`)
+                nexGui.inject(`.nexGuiTimerGauge {
+                        height:100%;
+                        width:100%;
+                        transform-origin: left center;
+                        transform: scaleX(1);
+                        z-index: 1;
+                        will-change: transform, color;
+                        position: relative
+                }`)
+                nexGui.inject(`.nexGuiTimerLabel {
+                        position: relative;
+                        top: -100%;
+                        width: 65%;
+                        z-index: 3;
+                        margin: 0px 0px 0px 5px;
+                        display: inline-block
+                }`)
+                nexGui.inject(`.nexGuiTimerText {
+                        position: relative;
+                        top: -100%;
+                        width: 25%;
+                        z-index: 3;
+                        display: inline-block
+                }`)
                 
             }
             start() {
@@ -1934,6 +1940,15 @@ var nexGui = {
                 nexGui.mongo.db.updateOne({'name':update.name}, update);
                 nexPrint(`Database updated ${name} to City ${city}`);
             }
+        },
+        _purgeRemovedPlayers() {
+            var purgeList = Object.keys(this.players).forEach(setTimeout(()=>{nexGui.cdb.getCharacterByName(e)},100));
+            var purgeTimer = setInterval(()=> {
+                if(purgeList.length == 0) {console.log('No names left, clearing interval');clearInterval(purgeTimer)}
+                let name = purgeList.pop();
+                console.log(name);
+                nexGui.cdb.getCharacterByName(name)
+            }, 1000)
         }
     },
 

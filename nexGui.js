@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.9',
+    version: '0.6.0',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -273,7 +273,7 @@ var nexGui = {
         let el = $(res);
         el.insertAfter('#character_module_status')
         $('#gauges').css({
-            'width': `${client.innerWidth< 1700?'28%':'37%'}`,
+            'width': `${client.innerWidth< 1700?'28%':'35%'}`,
             'padding': '2px 0 0 0'
         });
         $('<div></div>', {id:'character_module_balances', class: 'reduced', style: 'padding: 0 5px 0 0'})

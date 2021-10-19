@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.5.8',
+    version: '0.5.9',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -258,8 +258,8 @@ var nexGui = {
         $('#vote, #help, #footer > .separator').hide();
         $('#status-ping').prependTo('#character_module_status');
         $('#status-ping').css('width', '8%');
-        $('#status-target').css('width', '73%');
-        $('#character_module_status').css('width', '22%');
+        $('#status-target').css('width', `${client.innerWidth< 1700?'70%':'73%'}`);
+        $('#character_module_status').css('width', '23%');
         $('#character_module_balances').remove()
         $('#gauges').remove();
         let res ='';
@@ -273,7 +273,7 @@ var nexGui = {
         let el = $(res);
         el.insertAfter('#character_module_status')
         $('#gauges').css({
-            'width': '37%',
+            'width': `${client.innerWidth< 1700?'28%':'37%'}`,
             'padding': '2px 0 0 0'
         });
         $('<div></div>', {id:'character_module_balances', class: 'reduced', style: 'padding: 0 5px 0 0'})
@@ -282,7 +282,7 @@ var nexGui = {
         .append($('<div></div>', {id:'character_module_class', class: 'balance class-balance'}))
         .insertBefore('#gauges');
 
-        let mod2 = $('<div></div>', {id:"character_module_status", style:"width: 18%"}).insertAfter('#gauges');
+        let mod2 = $('<div></div>', {id:"character_module_status", style:"width: 21%"}).insertAfter('#gauges');
         $('#status-level, #status-gold, #status-bank').appendTo(mod2);
         $('#status-level, #status-gold, #status-bank').css('width', '70px');
 

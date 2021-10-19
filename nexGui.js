@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.0',
+    version: '0.6.1',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -282,7 +282,7 @@ var nexGui = {
         .append($('<div></div>', {id:'character_module_class', class: 'balance class-balance'}))
         .insertBefore('#gauges');
 
-        let mod2 = $('<div></div>', {id:"character_module_status", style:"width: 21%"}).insertAfter('#gauges');
+        let mod2 = $('<div></div>', {id:"character_module_status", style:`width: ${client.innerWidth< 1700?'21%':'18%'}`}).insertAfter('#gauges');
         $('#status-level, #status-gold, #status-bank').appendTo(mod2);
         $('#status-level, #status-gold, #status-bank').css('width', '70px');
 

@@ -224,7 +224,9 @@ var nexGui = {
         var tab_2h3b = makeTab(tab_2h3b, ["2h3b", "2h3b", "2h3b", '', 'container_2h3b']);
         var tab_2h3c = makeTab(tab_2h3c, ["2h3c", "2h3c", "2h3c", '', 'container_2h3c']);
 
+        makeTab(tab_2h4a, ["2h4a2", "2h4a2", "2h4a2", '', 'container_2h4a']);
         var tab_2h4a = makeTab(tab_2h4a, ["2h4a", "2h4a", "2h4a", '', 'container_2h4a']);
+        makeTab(tab_2h4a, ["2h4b2", "2h4b2", "2h4b2", '', 'container_2h4b']);
         var tab_2h4b = makeTab(tab_2h4b, ["2h4b", "2h4b", "2h4b", '', 'container_2h4b']);
         var tab_2h4c = makeTab(tab_2h4c, ["2h4c", "2h4c", "2h4c", '', 'container_2h4c']);
 
@@ -532,6 +534,7 @@ var nexGui = {
                 nexGui.character.profession = profession;
                 return;
             }
+            client.run_function(`nexGui.${profession}`, {}, 'Nexgui');
             nexGui.restoreLayout();
             nexGui[profession].layout();
             nexGui.character.profession = profession;

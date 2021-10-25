@@ -625,7 +625,7 @@ var nexGui = {
             },
             'some gold soveriegns': {
                 color: 'gold',
-                text: 'GOLD COINS'
+                text: 'GOLD COINS',
             }
         },
         city: {
@@ -1795,7 +1795,7 @@ var nexGui = {
             } else {
                 $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").prependTo(msg);
             }
-            $('<div></div>').append(msg).appendTo(location);
+            $('<div></div>', {style:"display:table-row"}).append(msg).appendTo(location);
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()
             }
@@ -1814,6 +1814,17 @@ var nexGui = {
                     'line-height':'13px'
                 })
                 .appendTo(this.location);
+            $('#tbl_2h3a').empty();
+                $('#tbl_2h3a').css({
+                    overflow: 'auto',
+                    height: '100%'
+                });
+                $('<div></div>', {id:"nexGuiAttackStream"})
+                    .css({
+                        'font-size':this.font_size,
+                        'line-height':'13px'
+                    })
+                    .appendTo('#tbl_2h3a');
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');

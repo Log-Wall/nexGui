@@ -423,19 +423,16 @@ var nexGui = {
 
         let nexGuiRoomPlayers = function(args) {
             nexGui.room.addPlayers(args);
-            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
         }
         nexSys.eventStream.registerEvent('Room.Players', nexGuiRoomPlayers);
 
         let nexGuiAddPlayer = function(args) {
             nexGui.room.players.add(args.name);
-            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
         }
         nexSys.eventStream.registerEvent('Room.AddPlayer', nexGuiAddPlayer);
 
         let nexGuiRemovePlayer = function(args) {
             nexGui.room.players.remove(args);
-            $('.nexGui_room-player').hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
         }
         nexSys.eventStream.registerEvent('Room.RemovePlayer', nexGuiRemovePlayer);
 
@@ -653,7 +650,8 @@ var nexGui = {
             doubleslash:'orange',
             jab:'orange',
             iron: 'orange',
-            frostrive: 'orange'
+            frostrive: 'orange',
+            overhand: 'orange'
         },
         actions: {
             eat: {color: 'gold', text:'Eat'},
@@ -842,6 +840,8 @@ var nexGui = {
                     height: '17px' // we set the height here because the container is a flexbox. The flexbox has height 100% so it will show the
                     // scrollbar at all times.
                 })
+                .hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
+                
                 $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
                 
                 let pre = false
@@ -1942,7 +1942,7 @@ var nexGui = {
             }
         },
         _purgeRemovedPlayers() {
-            var purgeList = Object.keys(this.players).forEach(setTimeout(()=>{nexGui.cdb.getCharacterByName(e)},100));
+            var purgeList = Object.keys(this.players);
             var purgeTimer = setInterval(()=> {
                 if(purgeList.length == 0) {console.log('No names left, clearing interval');clearInterval(purgeTimer)}
                 let name = purgeList.pop();

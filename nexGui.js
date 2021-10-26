@@ -316,6 +316,7 @@ var nexGui = {
         nexGui.target.layout();
         nexGui.aff.layout();
         nexGui.stream.layout();
+        nexGui.optionsDisplay.layout();
         nexGui.generateStyle();
     },
     restoreLayout() {
@@ -623,7 +624,7 @@ var nexGui = {
                 color:'red',
                 text:'A MONOLITH SIGIL'
             },
-            'some gold soveriegns': {
+            'some gold sovereigns': {
                 color: 'gold',
                 text: 'GOLD COINS',
             }
@@ -661,6 +662,7 @@ var nexGui = {
             smoke: {color: 'orange', text:'Smoke'},
             apply: {color: 'aquamrine', text:'Apply'},
             sip: {color: 'HotPink', text:'Sip'},
+            focus: {color: 'BlueViolet', text: 'Focus'},
             tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
             attack: {color: 'red', text: "Attack"}
         },
@@ -1412,7 +1414,94 @@ var nexGui = {
     
             toggleTableLeft.appendTo(pvpLeft);
             toggleTableRight.appendTo(pvpRight);
+
+            //This will push the class tab to the front most active position
+            $('#container_2h4b > div').tabs('option', 'active', 0)
         }
+    },
+
+    optionsPane: {
+        location: '#tbl_2h4b2',
+        font_size: '11px',
+        layout() {  
+            // Split the pane into two halves.
+            $('#optionsDisplay').remove();
+            $('#optionsLeft').empty();
+            $('#optionsRight').empty();
+            let optionsDisplay = $('<div></div>', {id: 'optionsDisplay', style:`display:flex;justify-content:space-evenly;font-size:${this.font_size}`}).appendTo(this.location);
+            let optionsLeft = $('<div></div>', {id: 'optionsLeft'}).appendTo(optionsDisplay);
+            let optionsRight = $('<div></div>', {id: 'optionsRight'}).appendTo(optionsDisplay);        
+    
+            // Table for holding all of our pvp toggles
+            let toggleTableLeft = $('<table></table>', {
+                id: 'optionsToggleTableLeft',
+                'font-size':'11px',
+                'text-align':'left',
+                //'table-layout':'fixed',
+                'max-width':'100%',
+                'border-spacing':'0px'})
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Nexus Config').appendTo(toggleTableLeft);
+            $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
+            $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
+    
+            let toggleTableRight = $('<table></table>', {
+                id: 'optionsToggleTableRight',
+                'font-size':'11px',
+                'text-align':'left',
+                //'table-layout':'fixed',
+                'max-width':'100%',
+                'border-spacing':'0px'})
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('nexGui Config').appendTo(toggleTableRight);
+            $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
+            $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
+    
+            toggleTableLeft.appendTo(optionsLeft);
+            toggleTableRight.appendTo(optionsRight);
+
+            nexGui.addOption('#optionsToggleTableLeft', 'Echo Input', client.echo_input);
+            nexGui.addOption('#optionsToggleTableLeft', 'Single Prompt', client.gag_prompts);
+            nexGui.addOption('#optionsToggleTableLeft', 'Display GMCP', client.echo_gmcp);
+            // First we clear out any potential duplicate event listeners. (just in case)
+            nexSys.eventStream.removeListener('nexGui-option-EchoInput', 'echoinputToggle');
+            nexSys.eventStream.removeListener('nexGui-option-SinglePrompt', 'singlepromptToggle');
+            nexSys.eventStream.removeListener('nexGui-option-DisplayGMCP', 'displaygmcpToggle');
+            // Now we add a listener with a simple function to execute when a toggle is changed. 
+            //In these cases it reads the true false value and changes the defence priority between 25 and 0
+            nexSys.eventStream.registerEvent('nexGui-option-EchoInput', function echoinputToggle(tf) {client.echo_input = tf ? true : false});
+            nexSys.eventStream.registerEvent('nexGui-option-SinglePrompt', function singlepromptToggle(tf) {client.gag_prompts = tf ? true : false});
+            nexSys.eventStream.registerEvent('nexGui-option-DisplayGMCP', function displaygmcpToggle(tf) {client.echo_gmcp = tf ? true : false});
+
+            let nexusFontSizeSelect = $("<tr></tr>", {id: "nexusFontSizeSelect"}).appendTo('#optionsToggleTableLeft');
+            $("<td>Font Size</td>", {}).appendTo(nexusFontSizeSelect);
+            let cell = $("<td></td>", {}).appendTo(nexusFontSizeSelect);
+            let fontSizeSelectList = $("<select></select>", {name: "nexusFontSizeSelectList", id: "nexusFontSizeSelectList"})
+            .change(function() {
+                client.font_size = parseInt($(this).val());
+                client.redraw_interface()
+            })
+            .appendTo(cell);
+            $("<option></option>", {value: 7}).text(7).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 8}).text(8).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 9}).text(9).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 10}).text(10).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 11}).text(11).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 12}).text(12).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 13}).text(13).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 14}).text(14).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 15}).text(15).appendTo(fontSizeSelectList);
+            $('#nexusFontSizeSelectList').val(client.font_size);
+
+
+            nexGui.addOption('#optionsToggleTableRight', 'Stream', reflex_find_by_name("group", "nexGui.stream", false, false, "nexGui").enabled);
+            nexGui.addOption('#optionsToggleTableRight', 'Msg Replace', reflex_find_by_name("group", "nexGui.msg", false, false, "nexGui").enabled);
+            // First we clear out any potential duplicate event listeners. (just in case)
+            nexSys.eventStream.removeListener('nexGui-option-Stream', 'nexGuiStreamToggle');
+            nexSys.eventStream.removeListener('nexGui-option-MsgReplace', 'nexGuiMsgToggle');
+            // Now we add a listener with a simple function to execute when a toggle is changed. 
+            //In these cases it reads the true false value and changes the defence priority between 25 and 0
+            nexSys.eventStream.registerEvent('nexGui-option-Stream', function nexGuiStreamToggle(tf) {reflex_find_by_name("group", "nexGui.stream", false, false, "nexGui").enabled = tf});
+            nexSys.eventStream.registerEvent('nexGui-option-MsgReplace', function nexGuiMsgToggle(tf) {reflex_find_by_name("group", "nexGui.msg", false, false, "nexGui").enabled = tf});
+            }
     },
 
     def: {

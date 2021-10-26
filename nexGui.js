@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.4',
+    version: '0.6.5',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -309,7 +309,6 @@ var nexGui = {
         nexGui.room.layout();
         nexGui.stats.layout();
         nexGui.party.layout();
-        nexGui.pvp.layout();
         nexGui.timer.layout();
         nexGui.def.layout();
         nexGui.feed.layout();
@@ -317,6 +316,7 @@ var nexGui = {
         nexGui.aff.layout();
         nexGui.stream.layout();
         nexGui.optionsPane.layout();
+        nexGui.pvp.layout();
         nexGui.generateStyle();
     },
     restoreLayout() {
@@ -1416,7 +1416,7 @@ var nexGui = {
             toggleTableRight.appendTo(pvpRight);
 
             //This will push the class tab to the front most active position
-            $('#container_2h4b > div').tabs('option', 'active', 0)
+            $('#container_2h4b > div').tabs('option', 'active', client.display_tabs['container_2h4b'].indexOf('2h4b'))
         }
     },
 

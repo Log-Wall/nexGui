@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.3',
+    version: '0.6.4',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -316,7 +316,7 @@ var nexGui = {
         nexGui.target.layout();
         nexGui.aff.layout();
         nexGui.stream.layout();
-        nexGui.optionsDisplay.layout();
+        nexGui.optionsPane.layout();
         nexGui.generateStyle();
     },
     restoreLayout() {

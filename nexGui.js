@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.5',
+    version: '0.6.6',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -183,10 +183,11 @@ var nexGui = {
         /***********************************************************************
             Adds 4 Horizontal rows to box_2.
          ***********************************************************************/
+        let box_2h4 = makeBox('2h4', 'hbox', 0.25, '2');
         let box_2h1 = makeBox('2h1', 'hbox', 0.45, '2');
         let box_2h2 = makeBox('2h2', 'hbox', 0.05, '2');
         let box_2h3 = makeBox('2h3', 'hbox', 0.25, '2');
-        let box_2h4 = makeBox('2h4', 'hbox', 0.25, '2');
+        //let box_2h4 = makeBox('2h4', 'hbox', 0.25, '2');
 
         //Adds a 2 stack box to the left of the Map window
         let box_2h1v1 = makeBox('2h1v1', 'vbox', 0.333, '2h1');
@@ -197,7 +198,8 @@ var nexGui = {
         $('#container_1').appendTo('#box_2h1v2').css('height', '100%');
 
         box_2h1.elements = [box_2h1v1, box_2h1v2]
-        find_client_layout_element('box_2').elements = [box_2h1, box_2h2, box_2h3, box_2h4];
+        //find_client_layout_element('box_2').elements = [box_2h1, box_2h2, box_2h3, box_2h4];
+        find_client_layout_element('box_2').elements = [box_2h4, box_2h2, box_2h3, box_2h1];
 
         /***********************************************************************
             Adds tabs to the 2 stack left of the map window

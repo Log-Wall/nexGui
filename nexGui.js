@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.7.0',
+    version: '0.7.1',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -662,7 +662,7 @@ var nexGui = {
         actions: {
             eat: {color: 'gold', text:'Eat'},
             smoke: {color: 'orange', text:'Smoke'},
-            apply: {color: 'aquamrine', text:'Apply'},
+            salve: {color: 'aquamrine', text:'Salve'},
             sip: {color: 'HotPink', text:'Sip'},
             focus: {color: 'BlueViolet', text: 'Focus'},
             tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
@@ -878,12 +878,13 @@ var nexGui = {
                 $(`#player-${player}`).remove();
             },
             dialog(player) {
+                $('#nexGui-dialog').dialog('destroy')
                 let c = nexGui.cdb.players[player];
                 let d = $('<div id="nexGui-dialog"></div>')
                 let t = $('<table></table>').appendTo(d);
                 let k = Object.keys(c);
                 for (let i = 0; i < k.length; i++) {
-                    if (k[i] == 'time') {break;}
+                    if (['regex','user'].indexOf(k[i]) != -1) {break;}
                     let r = $('<tr></tr>');
                     $('<td></td>').text(`${k[i].toProperCase()}: `).appendTo(r);
                     $('<td></td>').text(`${c[k[i]]}`).appendTo(r);
@@ -1338,24 +1339,12 @@ var nexGui = {
             nexPrint(tab[0].outerHTML);  
         },
         attackMsgBrief(what, subject) {
-            let tab = $("<div></div>", {class: "mono"}).css({
-                display:'inline-table',
-               'width': 'calc(100%)',
-               'text-align': 'left',
-               'table-layout': 'fixed',
-                'font-size': '11px'
-           });
-           let row = $("<div></div>").css({
-                display:'table-row'
-            }).appendTo(tab)
-            let cellWhat = $('<div></div>').css({
-                display:'table-cell',
-                    width: '50%'
-                }).appendTo(row);
+            let cellWhat = $('<span></span>')
             $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
             $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
             $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
 
+            let cellSubject = $('<span></span>')
             // Is the target a player?
             if(!nexGui.cdb.players[subject]) {
                 // If the target is not a player then the attack could possibly crit.
@@ -1364,22 +1353,16 @@ var nexGui = {
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
                 if (subject == GMCP.TargetText) {                 
                     // Add the subject portion of the line.
-                    let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
-                    let cellSubject = $("<div></div>").css({
-                        display:'table-cell'
-                    })
+                    let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
                     $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
-                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
-                    cellSubject.appendTo(row)                   
+                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);                   
                 } else {
-                    $("<div></div>").css({
-                display:'table-row'
-            }).text('').appendTo(row)
+                    cellSubject.text('');
                 }
             }
 
-            nexGui.stream.write('#nexGuiAttackStream', tab);  
+            nexGui.stream.write('#nexGuiAttackStream', [cellWhat,cellSubject]);  
         }
     },
 
@@ -1891,16 +1874,16 @@ var nexGui = {
             let row = $('<div></div>', {style:"display:table-row"}).appendTo(location);
 
             if (timeFormat == 'noms') {
-                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
             } else {
-                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
             }
             if (!Array.isArray(msg)) {
                 msg = [msg];
             }
 
             msg.forEach(e => {
-                $('<div></div>').css({display: 'table-cell', padding: '0px 10px 0px 0px'})
+                $('<div></div>').css({display: 'table-cell', padding: '0px 5px 0px 0px'})
                 .append(e)
                 .appendTo(row);
             })
@@ -1933,7 +1916,7 @@ var nexGui = {
                         'font-size':this.font_size,
                         'line-height':'13px'
                     })
-                    .appendTo('#tbl_2h3a');
+                    .appendTo('#tbl_2h3b');
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:crimson'>+aff&nbsp&nbsp&nbsp</span>",`<span>${aff.name.toProperCase()}</span>`], 'ms');
@@ -2157,6 +2140,9 @@ var nexGui = {
                 console.log('invalid numbers')
             }
         },
+        whois(name) {
+            nexGui.room.players.dialog(name);
+        },
         restore() {
             nexGui.generateStyle();
             nexGui.restoreLayout();
@@ -2186,6 +2172,10 @@ var nexGui = {
                 {
                     cmd: 'ng restore',
                     txt: 'Restores the display to base settings.'
+                },
+                {
+                    cmd: 'ng whois (name)',
+                    txt: 'Displays player database information for a character.'
                 },
                 {
                     cmd: 'ng theme1',

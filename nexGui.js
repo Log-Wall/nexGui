@@ -226,10 +226,10 @@ var nexGui = {
         var tab_2h3b = makeTab(tab_2h3b, ["2h3b", "2h3b", "2h3b", '', 'container_2h3b']);
         var tab_2h3c = makeTab(tab_2h3c, ["2h3c", "2h3c", "2h3c", '', 'container_2h3c']);
 
-        makeTab(tab_2h4a, ["2h4a2", "2h4a2", "2h4a2", '', 'container_2h4a']);
         var tab_2h4a = makeTab(tab_2h4a, ["2h4a", "2h4a", "2h4a", '', 'container_2h4a']);
-        makeTab(tab_2h4a, ["2h4b2", "2h4b2", "2h4b2", '', 'container_2h4b']);
+        makeTab(tab_2h4b, ["2h4b2", "2h4b2", "2h4b2", '', 'container_2h4b']);
         var tab_2h4b = makeTab(tab_2h4b, ["2h4b", "2h4b", "2h4b", '', 'container_2h4b']);
+        makeTab(tab_2h4c, ["2h4c2", "2h4c2", "2h4c2", '', 'container_2h4c']);
         var tab_2h4c = makeTab(tab_2h4c, ["2h4c", "2h4c", "2h4c", '', 'container_2h4c']);
 
         find_client_layout_element('box_2h3').elements.forEach(e=>e.weight=0.333)
@@ -301,8 +301,8 @@ var nexGui = {
         $('#bottom_buttons').remove();
         $('#box_2').insertAfter('#box_3');
         find_client_layout_element('box_5').weight=0.08;
-        find_client_layout_element('box_3').weight=0.47;
-        find_client_layout_element('box_2').weight=0.45;  
+        find_client_layout_element('box_3').weight=0.48;
+        find_client_layout_element('box_2').weight=0.44;  
         /***********************************************************************
             Run update to fit all windows to new sizes
          ***********************************************************************/
@@ -1831,7 +1831,7 @@ var nexGui = {
 
     feed: {
         url: 'https://api.achaea.com/gamefeed.json',
-        location: '#tbl_2h3c',
+        location: '#tbl_2h4a',
         font_size: '11px',
         lastEntry: false,
         interval: 1000,
@@ -1880,16 +1880,27 @@ var nexGui = {
     },
 
     stream: {
-        location: '#tbl_2h3b',
+        location: '#tbl_2h3c',
         font_size: '11px',
         msgLimit: 100,
         write(location, msg, timeFormat = 'noms') {
+            let row = $('<div></div>', {style:"display:table-row"}).appendTo(location);
+
             if (timeFormat == 'noms') {
-                $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTimeNoMS()+" ").prependTo(msg);
+                $('<div></div>', {class: "timestamp"}).css({disply: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
             } else {
-                $('<span></span>', {class: "timestamp"}).css({margin: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").prependTo(msg);
+                $('<div></div>', {class: "timestamp"}).css({disply: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
             }
-            $('<div></div>', {style:"display:table-row"}).append(msg).appendTo(location);
+            if (!Array.isArray(msg)) {
+                msg = [msg];
+            }
+
+            msg.forEach(e => {
+                $('<div></div>').css({disply: 'table-cell', padding: '0px 10px 0px 0px'})
+                .append(e)
+                .appendTo(row);
+            })
+
             if ($(location).children().length > this.msgLimit) {
                 $(location).children()[0].remove()
             }
@@ -1908,8 +1919,8 @@ var nexGui = {
                     'line-height':'13px'
                 })
                 .appendTo(this.location);
-            $('#tbl_2h3a').empty();
-                $('#tbl_2h3a').css({
+            $('#tbl_2h3b').empty();
+                $('#tbl_2h3b').css({
                     overflow: 'auto',
                     height: '100%'
                 });

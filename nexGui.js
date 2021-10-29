@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.9',
+    version: '0.7.0',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -2096,7 +2096,9 @@ var nexGui = {
             });
             nexGui.cdb.getCharacterServerList();
             console.log('MongoDB loaded');
+            nexGui.notice(`GUI version ${nexGui.version} loaded and ready for use.`);
             nexGui.notice(`Player database loaded with ${entries.length} entries.`);
+            nexGui.notice(`Latest Nexus package dated: 2021-10-29`);
         },
         ignoreList: [
             /a dervish/,

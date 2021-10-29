@@ -707,6 +707,7 @@ var nexGui = {
             }
         },
         layout() {
+            $('#tbl_tbl_2h1v1a').css({display:'flex','flex-direction':'column-reverse'})
             $('#room_npc_table').remove();
             $('#room_item_table').remove();
             if ($('#room_npc_table').length < 1) {
@@ -819,9 +820,9 @@ var nexGui = {
                 $('<td></td>', {style:`color:${c||this.nameColor}`}).text(`${t||item.name}`).appendTo(entry);
 
                 if (c || t) {
-                    entry.prependTo('#room_item_table');
-                } else {
                     entry.appendTo('#room_item_table');
+                } else {
+                    entry.prependTo('#room_item_table');
                 }
             },
             remove(item) {
@@ -847,9 +848,12 @@ var nexGui = {
                     height: '17px' // we set the height here because the container is a flexbox. The flexbox has height 100% so it will show the
                     // scrollbar at all times.
                 })
-                .hover((e)=>{nexGui.room.players.dialog(e.target.attributes.player.value)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
                 
-                $('<span></span>', {class:'nexGui_room-player', player:player}).text(player).appendTo(entry);
+                
+                $('<span></span>', {class:'nexGui_room-player', 'data-player':player})
+                .text(player)
+                .hover((e)=>{nexGui.room.players.dialog(e.target.dataset.player)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
+                .appendTo(entry);
                 
                 let pre = false
                 if (nexGui.room.enemies.indexOf(player) != -1) {
@@ -1002,7 +1006,7 @@ var nexGui = {
     },
 
     stats: {
-        location: '#tbl_2h4a',
+        location: '#tbl_2h4b',
         instanceCount: 0,
         sessionCount: 0,
         instanceGold: GMCP.Status.gold || 0,
@@ -1380,7 +1384,7 @@ var nexGui = {
     },
 
     pvp: {
-        location: '#tbl_2h4b',
+        location: '#tbl_2h3a',
         font_size: '11px',
         layout() {  
             // Split the pane into two halves.
@@ -1423,7 +1427,7 @@ var nexGui = {
     },
 
     optionsPane: {
-        location: '#tbl_2h4b2',
+        location: '#tbl_2h4c2',
         font_size: '11px',
         layout() {  
             // Split the pane into two halves.
@@ -1887,16 +1891,16 @@ var nexGui = {
             let row = $('<div></div>', {style:"display:table-row"}).appendTo(location);
 
             if (timeFormat == 'noms') {
-                $('<div></div>', {class: "timestamp"}).css({disply: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
             } else {
-                $('<div></div>', {class: "timestamp"}).css({disply: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 10px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
             }
             if (!Array.isArray(msg)) {
                 msg = [msg];
             }
 
             msg.forEach(e => {
-                $('<div></div>').css({disply: 'table-cell', padding: '0px 10px 0px 0px'})
+                $('<div></div>').css({display: 'table-cell', padding: '0px 10px 0px 0px'})
                 .append(e)
                 .appendTo(row);
             })
@@ -1932,17 +1936,17 @@ var nexGui = {
                     .appendTo('#tbl_2h3a');
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">+aff&nbsp&nbsp&nbsp</span><span>${aff.name.toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:crimson'>+aff&nbsp&nbsp&nbsp</span>",`<span>${aff.name.toProperCase()}</span>`], 'ms');
             }
             let nexGuiStreamAddDef = function nexGuiStreamAddDef(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">+def&nbsp&nbsp&nbsp</span><span>${def.name.toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:lawngreen'>+def&nbsp&nbsp&nbsp</span>",`<span>${def.name.toProperCase()}</span>`], 'ms');
             }
             let nexGuiStreamLostAff = function nexGuiStreamLostAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff[0]) != -1) {return;}
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:lawngreen">-aff&nbsp&nbsp&nbsp</span><span>${aff[0].toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:lawngreen'>-aff&nbsp&nbsp&nbsp</span>",`<span>${aff[0].toProperCase()}</span>`], 'ms');
             }
             let nexGuiStreamLostDef = function nexGuiStreamLostDef(def) {
-                nexGui.stream.write('#nexGuiStream', $(`<div><span class='mono' style="color:crimson">-def&nbsp&nbsp&nbsp</span><span>${def[0].toProperCase()}</span></div>`), 'ms');
+                nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:crimson'>-def&nbsp&nbsp&nbsp</span>",`<span>${def[0].toProperCase()}</span>`], 'ms');
             }
             nexSys.eventStream.removeListener('Char.Defences.Remove', 'nexGuiStreamLostDef');
             nexSys.eventStream.removeListener('Char.Defences.Add', 'nexGuiStreamAddDef');

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.6.8',
+    version: '0.6.9',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -707,7 +707,7 @@ var nexGui = {
             }
         },
         layout() {
-            $('#tbl_tbl_2h1v1a').css({display:'flex','flex-direction':'column-reverse'})
+            $('#tbl_2h1v1a').css({display:'flex','flex-direction':'column-reverse'})
             $('#room_npc_table').remove();
             $('#room_item_table').remove();
             if ($('#room_npc_table').length < 1) {

@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.7.1',
+    version: '0.7.2',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -410,6 +410,7 @@ var nexGui = {
 
         // Populate nexGUI GMCP events
         let nexGuiRoomAddAll = function(args) {
+            if(args.location != 'room') {return;}
             nexGui.room.addAll(args.items);
         }
         nexSys.eventStream.registerEvent('Char.Items.List', nexGuiRoomAddAll);
@@ -902,7 +903,7 @@ var nexGui = {
     party: {
         location: '#tbl_2h4c',
         font_size: '11px',
-        party: [GMCP.Status.name],
+        members: [GMCP.Status.name],
         leader: GMCP.Status.name,
         targetCalls: true,
         affCalls: true,
@@ -914,13 +915,13 @@ var nexGui = {
         removeMember(name) {
             console.log(" remove");
             $(`#party_list-${name}`).remove();
-            nexGui.party.party.splice(nexGui.party.party.indexOf(name),1);
+            nexGui.party.members.splice(nexGui.party.members.indexOf(name),1);
             $(`#leaderSelectList > option[value=${name}]`).remove();
         },
         
         addMember(name) {
-            if (nexGui.party.party.indexOf(name) == -1) {
-                nexGui.party.party.push(name);
+            if (nexGui.party.members.indexOf(name) == -1) {
+                nexGui.party.members.push(name);
             }
             
             $('<div></div>', {id: `party_list-${name}`})
@@ -933,7 +934,7 @@ var nexGui = {
         updateMembers() {
             $('#partyMemberList').empty();
             $('#leaderSelectList').empty();
-            this.party.forEach(e => this.addMember(e));
+            this.members.forEach(e => this.addMember(e));
         },
         
         layout() {    	
@@ -957,8 +958,8 @@ var nexGui = {
                 nexGui.party.leader = $(this).val();
             })
             .appendTo(leaderSelect);
-            for (let i=0; i < nexGui.party.party.length; i++) {
-                $("<option></option>", {value: nexGui.party.party[i]}).text(nexGui.party.party[i]).appendTo(leaderSelectList);
+            for (let i=0; i < nexGui.party.members.length; i++) {
+                $("<option></option>", {value: nexGui.party.members[i]}).text(nexGui.party.members[i]).appendTo(leaderSelectList);
             }
 
             let removeMember = function(args) {

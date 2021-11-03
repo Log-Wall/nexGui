@@ -2141,7 +2141,7 @@ var nexGui = {
             }
         },
         whois(name) {
-            nexGui.room.players.dialog(name);
+            nexGui.room.players.dialog(name.toProperCase());
         },
         restore() {
             nexGui.generateStyle();

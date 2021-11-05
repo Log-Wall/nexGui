@@ -909,7 +909,7 @@ var nexGui = {
         callTargets: false,
         callAffs: false,
         goldCollection: true,
-        gagChat: true,
+        gagChat: false,
         
         removeMember(name) {
             console.log(" remove");
@@ -1224,7 +1224,9 @@ var nexGui = {
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who = '', what = '', subject = '') {
-            if (nexGui.colors.attacks[what.toLowerCase()]) {this.attackMsg(who, what, subject);return;}
+            what = what.toLowerCase();
+            subject = subject.toLowerCase();
+            if (nexGui.colors.attacks[what]) {this.attackMsg(who, what, subject);return;}
             
             let whatColor = false;
             let whatText = false;

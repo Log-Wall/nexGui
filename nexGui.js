@@ -1226,7 +1226,10 @@ var nexGui = {
         actionMsg(who = '', what = '', subject = '') {
             what = what.toLowerCase();
             subject = subject.toLowerCase();
-            if (nexGui.colors.attacks[what]) {this.attackMsg(who, what, subject);return;}
+            if (nexGui.colors.attacks[what]) {
+                this.attackMsg(who, what, subject);
+                return;
+            }
             
             let whatColor = false;
             let whatText = false;
@@ -1273,7 +1276,7 @@ var nexGui = {
         },
         attackMsg(who, what, subject) {
 
-            if(who == 'Self' && nexGui.msg.brief == true) {
+            if(who == 'self' && nexGui.msg.brief == true) {
                 this.attackMsgBrief(what, subject);
                 return;
             }
@@ -1334,7 +1337,7 @@ var nexGui = {
                     $('<span></span>', {style:'color:white'}).text(GMCP.TargetText).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 } else {
-                    this.formatWho(subject).css({color: 'white', width:'auto'}).appendTo(row)
+                    this.formatWho(GMCP.TargetText).css({color: 'white', width:'auto'}).appendTo(row)
                 }
             }
 

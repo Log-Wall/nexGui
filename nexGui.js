@@ -1318,7 +1318,7 @@ var nexGui = {
                 $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
-                if (subject == GMCP.TargetText) {
+                if (subject == GMCP.TargetText.toLowerCase()) {
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellWhat);
                     $('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`).appendTo(cellWhat);
                     $('<span></span>', {style:"color:white"}).text(')').appendTo(cellWhat);
@@ -1331,7 +1331,7 @@ var nexGui = {
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
                     $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
                     $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
-                    $('<span></span>', {style:'color:white'}).text(subject).appendTo(cellSubject);
+                    $('<span></span>', {style:'color:white'}).text(GMCP.TargetText).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 } else {
                     this.formatWho(subject).css({color: 'white', width:'auto'}).appendTo(row)

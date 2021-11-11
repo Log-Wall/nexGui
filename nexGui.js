@@ -377,6 +377,7 @@ var nexGui = {
                 ow_Write(selector, timestamp+s);
             }
         }
+        
         //nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
 
         this.restoreEvents();

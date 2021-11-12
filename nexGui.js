@@ -566,6 +566,16 @@ var nexGui = {
     },
 
     colors: {
+        gradient(percent, increments = 100, start = 0, end = 120) {
+            //https://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage
+            // 0 is red, 120 is green. Gradient from red to green.
+              let a = (Math.floor(percent / (101 / (increments + 1))) * (100 / increments)) / 100;
+              let b = (end - start) * a;
+              let c = b + start;
+        
+          // Return a CSS HSL string
+              return `hsl(${c}, 100%, 50%)`;
+        },
         highlightNames(txt) {
             let names = Object.keys(nexGui.cdb.players);
             for(let i = 0; i < names.length; i++) {

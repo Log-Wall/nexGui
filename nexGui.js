@@ -557,10 +557,12 @@ var nexGui = {
         if (typeof args.charstats === 'undefined') {return;}
         if (args.charstats.indexOf(`${nexGui.character.classBalanceType}: Yes`) != -1) {
             $('#character_module_class').css('opacity', '100%')
+            nexSys.eventStream.raiseEvent(`${nexGui.character.classBalanceType.toLowerCase()}GotBalEvent`);
             return
         }
         if (args.charstats.indexOf(`${nexGui.character.classBalanceType}: No`) != -1) {
             $('#character_module_class').css('opacity', '15%')
+            nexSys.eventStream.raiseEvent(`${nexGui.character.classBalanceType.toLowerCase()}LostBalEvent`);
             return
         }
     },

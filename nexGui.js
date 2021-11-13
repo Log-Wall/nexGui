@@ -410,10 +410,25 @@ var nexGui = {
         nexSys.eventStream.removeListener('IRE.Target.Set', 'nexGuiTarget')
 
         // Populate nexGUI GMCP events
+        let nexGuiTarget = function(args) {
+            if (!args.target) {return;}
+
+            $('.nexGui_room-target').removeClass('nexGui_room-target');
+            if (GMCP.TargetIsPlayer) {
+                $(`#player-${GMCP.Target}`).addClass('nexGui_room-target');
+                $('.nexGui_room-target').prependTo('#room_player_table');
+            } else {
+                $(`#npc-${GMCP.Target}`).addClass('nexGui_room-target');
+                $('.nexGui_room-target').prependTo('#room_npc_table');
+            }
+        }
+        nexSys.eventStream.registerEvent('Char.Status', nexGuiTarget);
+
         let nexGuiRoomAddAll = function(args) {
             nexGui.room.addAll(args.items);
         }
         nexSys.eventStream.registerEvent('Char.Items.List', nexGuiRoomAddAll);
+        nexSys.eventStream.registerEvent('Char.Items.List', nexGuiTarget);
 
         let nexGuiRoomAdd = function(args) {
             if (args.location == "room")
@@ -482,20 +497,6 @@ var nexGui = {
             nexGui.stats.update();
         }  
         nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
-
-        let nexGuiTarget = function(args) {
-            if (!args.target) {return;}
-
-            $('.nexGui_room-target').removeClass('nexGui_room-target');
-            if (GMCP.TargetIsPlayer) {
-                $(`#player-${GMCP.Target}`).addClass('nexGui_room-target');
-                $('.nexGui_room-target').prependTo('#room_player_table');
-            } else {
-                $(`#npc-${GMCP.Target}`).addClass('nexGui_room-target');
-                $('.nexGui_room-target').prependTo('#room_npc_table');
-            }
-        }
-        nexSys.eventStream.registerEvent('Char.Status', nexGuiTarget);
 
         let nexGuiMiscAchievement = function(args) {
             if (args?.name == 'TotalCreaturesKilled') {

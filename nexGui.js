@@ -572,9 +572,11 @@ var nexGui = {
         gradient(percent, increments = 100, start = 0, end = 120) {
             //https://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage
             // 0 is red, 120 is green. Gradient from red to green.
-              let a = (Math.floor(percent / (101 / (increments + 1))) * (100 / increments)) / 100;
-              let b = (end - start) * a;
-              let c = b + start;
+            let a = Math.ceil(percent/(101/increments)) == increments ? 
+                Math.ceil(percent/(101/increments)) * 100/increments : 
+                Math.floor(percent/(101/increments)) * 100/increments;
+            let b = (end - start) * a/100;
+            let c = b + start;
         
           // Return a CSS HSL string
               return `hsl(${c}, 100%, 50%)`;
@@ -698,6 +700,7 @@ var nexGui = {
             $('#room_npc_table > tr').remove();
             $('#room_item_table > tr').remove();
             nexGui.room.npcs.guardCount = 0;
+            nexGui.room.npcs.entityCount = 0;
             items.forEach(e => this.add(e));
         },
         addPlayers(players) {
@@ -774,9 +777,14 @@ var nexGui = {
             nameColor: 'white',
             location: '#tbl_2h1v1b',
             guardCount: 0,
+            entityCount: 0,
             add(npc) {
                 if (npc.icon == 'guard' && npc.attrib == 'mx') {
                     this.addGuard(npc);
+                    return;
+                }
+                if (npc.icon == 'fiend' && ignoreList.some(rx => rx.test(npc.name))) {
+                    this.addEntity(npc);
                     return;
                 }
                 let entry = $('<tr></tr>', {id: `npc-${npc.id}`}).css({'font-size':this.size});
@@ -789,7 +797,17 @@ var nexGui = {
                 entry.appendTo('#room_npc_table');
             },
             remove(npc) {
+                if (npc.icon == 'guard' && npc.attrib == 'mx' && this.guardCount > 0) {
+                    this.guardCount--;
+                    $('#npc-guardCount').text(`(${this.guardCount}x)`) 
+                    return;
+                }
+                if (npc.icon == 'fiend' && ignoreList.some(rx => rx.test(npc.name)) && this.entityCount > 0) {
+                    this.entityCount--;
+                    $('#npc-entityCount').text(`(${this.entityCount}x)`)
+                }
                 $(`#npc-${npc.id}`).remove();
+                
             },
             target(id) {
                 sdfg
@@ -809,8 +827,23 @@ var nexGui = {
                     this.guardCount++
                     $('#npc-guardCount').text(`(${this.guardCount}x)`)
                 }
-                
-            }  
+            },
+            addEntity(npc) {
+                if (this.entityCount == 0) {
+                    this.entityCount = 1;
+                    let entry = $('<tr></tr>', {id: `npc-entities`});
+                    $('<td></td>', {id: 'npc-entityCount', style:`padding: 0px;color:${this.idColor}`}).text(nexGui.room.displayID?`(${this.entityCount}x)`:"").appendTo(entry);
+                    $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).text('Chaos Entities').appendTo(entry);
+                    /*entry.on('click', (e) => {
+                        send_direct(`settarget ${npc.id}`);
+                        $(e.currentTarget).appendTo('#room_npc_table');
+                    })*/
+                    entry.appendTo('#room_npc_table');
+                } else {
+                    this.entityCount++
+                    $('#npc-entityCount').text(`(${this.entityCount}x)`)
+                }
+            }
         },
         items: {
             font: 'veranda',
@@ -1238,9 +1271,9 @@ var nexGui = {
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
         actionMsg(who = '', what = '', subject = '') {
-            what = what.toLowerCase();
-            subject = subject.toLowerCase();
-            if (nexGui.colors.attacks[what]) {
+            let lc_what = what.toLowerCase();
+            let lc_subject = subject.toLowerCase();
+            if (nexGui.colors.attacks[lc_what]) {
                 this.attackMsg(who, what, subject);
                 return;
             }
@@ -1249,13 +1282,13 @@ var nexGui = {
             let whatText = false;
             let subjectColor = false;
             let subjectText = false;
-            if (nexGui.colors.actions[what]) {
-                whatColor = nexGui.colors.actions[what].color;
-                whatText = nexGui.colors.actions[what].text;
+            if (nexGui.colors.actions[lc_what]) {
+                whatColor = nexGui.colors.actions[lc_what].color;
+                whatText = nexGui.colors.actions[lc_what].text;
             }
-            if (nexGui.colors.subjects[subject]) {
-                subjectColor = nexGui.colors.subjects[subject].color;
-                subjectText = nexGui.colors.subjects[subject].text;
+            if (nexGui.colors.subjects[lc_subject]) {
+                subjectColor = nexGui.colors.subjects[lc_subject].color;
+                subjectText = nexGui.colors.subjects[lc_subject].text;
             }
 
             
@@ -1290,7 +1323,7 @@ var nexGui = {
         },
         attackMsg(who, what, subject) {
 
-            if(who == 'self' && nexGui.msg.brief == true) {
+            if(who.toLowerCase() == 'self' && nexGui.msg.brief == true) {
                 this.attackMsgBrief(what, subject);
                 return;
             }
@@ -1316,7 +1349,7 @@ var nexGui = {
                     width: '30%'
                 }).appendTo(row);
             $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
-            $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
+            $('<span></span>', {style:"color:orange"}).text(what.toProperCase()).appendTo(cellWhat);
             $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
                 
             
@@ -1346,7 +1379,7 @@ var nexGui = {
                         display:'table-cell'
                     })
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
-                    $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
                     $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
                     $('<span></span>', {style:'color:white'}).text(GMCP.TargetText).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
@@ -1374,7 +1407,7 @@ var nexGui = {
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
-                    $('<span></span>', {style:`color:${this.percentColor(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
                     $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);                   
                 } else {
                     cellSubject.text('');
@@ -2121,15 +2154,7 @@ var nexGui = {
             /a doppleganger/,
             /an ethereal firelord/,
             /a simpering sycophant/,
-            /a water weird/,
-            /an eldritch abomination/,
-            /Khaseem/,
-            /a guardian angel/,
-            /a diminutive homunculus/,
-            /a Baalzadeen/,
-            /shipmate/,
-            /a squad of/,
-            /swashbuckler/
+            /an eldritch abomination/
         ]
     },
 

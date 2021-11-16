@@ -685,6 +685,7 @@ var nexGui = {
             attack: {color: 'red', text: "Attack"}
         },
         subjects: {
+            self: {color: 'cyan', text: 'Self'},
             shield: {color: 'cyan', text:'((Shield))'},
             tree: {color: 'lawngreen', text:'Tree'}
         }
@@ -1224,23 +1225,9 @@ var nexGui = {
         ['CRUSHING', '4x'],
         ['OBLITERATING', '8x'],
         ['ANNIHILATINGLY', '16x'],
-        ['WORLD', '32x']
+        ['WORLD', '32x'],
+        ['PLANE', '64x']
         ],
-        percentColor(percent) {
-            let hpcolor = '';
-            if (percent > 75) {
-                hpcolor = 'limegreen';
-            } else if (percent > 50) {
-                hpcolor = 'yellow';
-            } else if (percent > 20) {
-                hpcolor = 'orange';
-            } else if (percent >= 0) {
-                hpcolor = 'red';
-            } else {
-                hpcolor = 'white';
-            }
-            return hpcolor;
-        },
         checkCrit() {
             let dmg = 'Hit';
             for(let i = 0; i < this.crits.length; i++) {
@@ -1260,7 +1247,7 @@ var nexGui = {
         },
         formatWho(who) {
             let color = nexGui.cdb.players[who] ? nexGui.colors.city[nexGui.cdb.players[who].city] : 'grey';
-            if (who == 'Self') {color = 'cyan'};
+            if (who == 'Self') {color = nexGui.colors.subject.self.color};
 
             return $("<div></div>").css({
                display:'table-cell',

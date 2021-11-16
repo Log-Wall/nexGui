@@ -1355,7 +1355,7 @@ var nexGui = {
                 $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
-                if (subject == GMCP.TargetText.toLowerCase()) {
+                if (subject.toLowerCase() == GMCP.TargetText.toLowerCase()) {
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellWhat);
                     $('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`).appendTo(cellWhat);
                     $('<span></span>', {style:"color:white"}).text(')').appendTo(cellWhat);

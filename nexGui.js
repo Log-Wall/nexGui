@@ -685,7 +685,7 @@ var nexGui = {
             attack: {color: 'red', text: "Attack"}
         },
         subjects: {
-            self: {color: 'cyan', text: 'Self'},
+            self: {color: 'lightpink', text: 'Self'},
             shield: {color: 'cyan', text:'((Shield))'},
             tree: {color: 'lawngreen', text:'Tree'}
         }
@@ -1247,7 +1247,7 @@ var nexGui = {
         },
         formatWho(who) {
             let color = nexGui.cdb.players[who] ? nexGui.colors.city[nexGui.cdb.players[who].city] : 'grey';
-            if (who == 'Self') {color = nexGui.colors.subject.self.color};
+            if (who.toLowerCase() == 'self') {color = nexGui.colors.subjects.self.color};
 
             return $("<div></div>").css({
                display:'table-cell',
@@ -1390,7 +1390,7 @@ var nexGui = {
                 $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
-                if (subject == GMCP.TargetText) {                 
+                if (subject.toLowercase() == GMCP.TargetText) {                 
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);

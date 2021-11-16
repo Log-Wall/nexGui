@@ -783,7 +783,7 @@ var nexGui = {
                     this.addGuard(npc);
                     return;
                 }
-                if (npc.icon == 'fiend' && ignoreList.some(rx => rx.test(npc.name))) {
+                if (npc.icon == 'fiend' && nexGui.mongo.ignoreList.some(rx => rx.test(npc.name))) {
                     this.addEntity(npc);
                     return;
                 }
@@ -802,7 +802,7 @@ var nexGui = {
                     $('#npc-guardCount').text(`(${this.guardCount}x)`) 
                     return;
                 }
-                if (npc.icon == 'fiend' && ignoreList.some(rx => rx.test(npc.name)) && this.entityCount > 0) {
+                if (npc.icon == 'fiend' && nexGui.mongo.ignoreList.some(rx => rx.test(npc.name)) && this.entityCount > 0) {
                     this.entityCount--;
                     $('#npc-entityCount').text(`(${this.entityCount}x)`)
                 }

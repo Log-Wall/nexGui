@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.7.7',
+    version: '0.8.2',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -104,7 +104,7 @@ var nexGui = {
                 nexSys.eventStream.raiseEvent(`nexGui-option-${title.replaceAll(' ','')}`, e.target.checked);
             }
         let optionRow = $('<tr></tr>', {id:`nexGui-option-${title.replaceAll(' ','')}`});
-        $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).text(title).appendTo(optionRow);
+        $('<td></td>', {style: `padding:0px 5px 0px 0px;display:block;font-weight:bold`}).html(title).appendTo(optionRow);
 
         let lab = $('<label></label>', {
             'class': 'nexGuiSwitch nexInput'
@@ -336,20 +336,20 @@ var nexGui = {
         });
         $('<span></span>', {
             style: 'color:DodgerBlue'
-        }).text('[-').appendTo(msg);
+        }).html('[-').appendTo(msg);
         $('<span></span>', {
             style: 'color:OrangeRed'
-        }).text('nexGui').appendTo(msg);
+        }).html('nexGui').appendTo(msg);
         $('<span></span>', {
             style: 'color:DodgerBlue'
-        }).text('-] ').appendTo(msg);
+        }).html('-] ').appendTo(msg);
     
         if (html) {
             txt.appendTo(msg)
         } else {
             $('<span></span>', {
                 style: 'color:GoldenRod'
-            }).text(txt).appendTo(msg)
+            }).html(txt).appendTo(msg)
         }
     
         client.print(msg[0].outerHTML);
@@ -608,7 +608,7 @@ var nexGui = {
                 let colour = nexGui.colors.city[nexGui.cdb.players[player].city];
                 let entry = $('<span></span>').css({
                     color: colour
-                }).text(player);
+                }).html(player);
                 if (nexGui.room.enemies.indexOf(player) != -1) {
                     $('<span>(</span>', {style:'color:red'}).prependTo(entry);
                     $('<span>)</span>', {style:'color:red'}).appendTo(entry);
@@ -682,7 +682,9 @@ var nexGui = {
             sip: {color: 'HotPink', text:'Sip'},
             focus: {color: 'BlueViolet', text: 'Focus'},
             tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
-            attack: {color: 'red', text: "Attack"}
+            attack: {color: 'red', text: "Attack"},
+            prone: {color: 'red', text: "\u00AB Prone \u00BB"},
+            
         },
         subjects: {
             self: {color: 'lightpink', text: 'Self'},
@@ -789,8 +791,8 @@ var nexGui = {
                     return;
                 }
                 let entry = $('<tr></tr>', {id: `npc-${npc.id}`}).css({'font-size':this.size});
-                $('<td></td>', {style:`padding: 0px 5px 0px 2px;color:${this.idColor}`}).text(nexGui.room.displayID?npc.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).text(npc.name).appendTo(entry);
+                $('<td></td>', {style:`padding: 0px 5px 0px 2px;color:${this.idColor}`}).html(nexGui.room.displayID?npc.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).html(npc.name).appendTo(entry);
                 entry.on('click', (e) => {
                     send_direct(`settarget ${npc.id}`);
                     $(e.currentTarget).appendTo('#room_npc_table');
@@ -800,12 +802,12 @@ var nexGui = {
             remove(npc) {
                 if (npc.icon == 'guard' && npc.attrib == 'mx' && this.guardCount > 0) {
                     this.guardCount--;
-                    $('#npc-guardCount').text(`(${this.guardCount}x)`) 
+                    $('#npc-guardCount').html(`(${this.guardCount}x)`) 
                     return;
                 }
                 if (npc.icon == 'fiend' && nexGui.mongo.ignoreList.some(rx => rx.test(npc.name)) && this.entityCount > 0) {
                     this.entityCount--;
-                    $('#npc-entityCount').text(`(${this.entityCount}x)`)
+                    $('#npc-entityCount').html(`(${this.entityCount}x)`)
                 }
                 $(`#npc-${npc.id}`).remove();
                 
@@ -817,8 +819,8 @@ var nexGui = {
                 if (this.guardCount == 0) {
                     this.guardCount = 1;
                     let entry = $('<tr></tr>', {id: `npc-guards`});
-                    $('<td></td>', {id: 'npc-guardCount', style:`padding: 0px;color:${this.idColor}`}).text(nexGui.room.displayID?`(${this.guardCount}x)`:"").appendTo(entry);
-                    $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).text('City Guards').appendTo(entry);
+                    $('<td></td>', {id: 'npc-guardCount', style:`padding: 0px;color:${this.idColor}`}).html(nexGui.room.displayID?`(${this.guardCount}x)`:"").appendTo(entry);
+                    $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).html('City Guards').appendTo(entry);
                     /*entry.on('click', (e) => {
                         send_direct(`settarget ${npc.id}`);
                         $(e.currentTarget).appendTo('#room_npc_table');
@@ -826,15 +828,15 @@ var nexGui = {
                     entry.appendTo('#room_npc_table');
                 } else {
                     this.guardCount++
-                    $('#npc-guardCount').text(`(${this.guardCount}x)`)
+                    $('#npc-guardCount').html(`(${this.guardCount}x)`)
                 }
             },
             addEntity(npc) {
                 if (this.entityCount == 0) {
                     this.entityCount = 1;
                     let entry = $('<tr></tr>', {id: `npc-entities`});
-                    $('<td></td>', {id: 'npc-entityCount', style:`padding: 0px;color:${this.idColor}`}).text(nexGui.room.displayID?`(${this.entityCount}x)`:"").appendTo(entry);
-                    $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).text('Chaos Entities').appendTo(entry);
+                    $('<td></td>', {id: 'npc-entityCount', style:`padding: 0px;color:${this.idColor}`}).html(nexGui.room.displayID?`(${this.entityCount}x)`:"").appendTo(entry);
+                    $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).html('Chaos Entities').appendTo(entry);
                     /*entry.on('click', (e) => {
                         send_direct(`settarget ${npc.id}`);
                         $(e.currentTarget).appendTo('#room_npc_table');
@@ -842,7 +844,7 @@ var nexGui = {
                     entry.appendTo('#room_npc_table');
                 } else {
                     this.entityCount++
-                    $('#npc-entityCount').text(`(${this.entityCount}x)`)
+                    $('#npc-entityCount').html(`(${this.entityCount}x)`)
                 }
             }
         },
@@ -864,8 +866,8 @@ var nexGui = {
                 }
                 
                 let entry = $('<tr></tr>', {id: `item-${item.id}`}).css({'font-size':this.size});;
-                $('<td></td>', {style:`color:${this.idColor}`}).text(nexGui.room.displayID?item.id:"").appendTo(entry);
-                $('<td></td>', {style:`color:${c||this.nameColor}`}).text(`${t||item.name}`).appendTo(entry);
+                $('<td></td>', {style:`color:${this.idColor}`}).html(nexGui.room.displayID?item.id:"").appendTo(entry);
+                $('<td></td>', {style:`color:${c||this.nameColor}`}).html(`${t||item.name}`).appendTo(entry);
 
                 if (c || t) {
                     entry.appendTo('#room_item_table');
@@ -899,18 +901,18 @@ var nexGui = {
                 
                 
                 $('<span></span>', {class:'nexGui_room-player', 'data-player':player})
-                .text(player)
+                .html(player)
                 .hover((e)=>{nexGui.room.players.dialog(e.target.dataset.player)}, ()=>{$('#nexGui-dialog').dialog('destroy')})
                 .appendTo(entry);
                 
                 let pre = false
                 if (nexGui.room.enemies.indexOf(player) != -1) {
-                    $('<span></span>', {style:'color:red'}).text('(').prependTo(entry);
-                    $('<span></span>', {style:'color:red'}).text(')').appendTo(entry);
+                    $('<span></span>', {style:'color:red'}).html('(').prependTo(entry);
+                    $('<span></span>', {style:'color:red'}).html(')').appendTo(entry);
                     pre = true;
                 } else if (nexGui.room.allies.indexOf(player) != -1) {
-                    $('<span></span>', {style:'color:white'}).text('(').prependTo(entry);
-                    $('<span></span>', {style:'color:white'}).text(')').appendTo(entry);
+                    $('<span></span>', {style:'color:white'}).html('(').prependTo(entry);
+                    $('<span></span>', {style:'color:white'}).html(')').appendTo(entry);
                     pre = true;
                 }
                 entry.on('click', () => {
@@ -934,8 +936,8 @@ var nexGui = {
                 for (let i = 0; i < k.length; i++) {
                     if (['regex','user'].indexOf(k[i]) != -1) {break;}
                     let r = $('<tr></tr>');
-                    $('<td></td>').text(`${k[i].toProperCase()}: `).appendTo(r);
-                    $('<td></td>').text(`${c[k[i]]}`).appendTo(r);
+                    $('<td></td>').html(`${k[i].toProperCase()}: `).appendTo(r);
+                    $('<td></td>').html(`${c[k[i]]}`).appendTo(r);
                     r.appendTo(t)
                 }
             
@@ -972,10 +974,10 @@ var nexGui = {
             }
             
             $('<div></div>', {id: `party_list-${name}`})
-                .append($("<span></span>").text(name).click(function() {removeMember(this);}))
+                .append($("<span></span>").html(name).click(function() {removeMember(this);}))
                 .appendTo($("#partyMemberList"));
             
-            $("<option></option>", {value: name}).text(name).appendTo($("#leaderSelectList"));
+            $("<option></option>", {value: name}).html(name).appendTo($("#leaderSelectList"));
         },
         
         updateMembers() {
@@ -1006,7 +1008,7 @@ var nexGui = {
             })
             .appendTo(leaderSelect);
             for (let i=0; i < nexGui.party.members.length; i++) {
-                $("<option></option>", {value: nexGui.party.members[i]}).text(nexGui.party.members[i]).appendTo(leaderSelectList);
+                $("<option></option>", {value: nexGui.party.members[i]}).html(nexGui.party.members[i]).appendTo(leaderSelectList);
             }
 
             let removeMember = function(args) {
@@ -1033,7 +1035,7 @@ var nexGui = {
             // Populate the LEFT side column of the pane
             $('#partyLeft').empty();
             $('<div></div>')
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Party Members"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).html("Party Members"))
                 .appendTo('#partyLeft');
             $('<div></div>', {id: 'partyMemberList'}).appendTo('#partyLeft');
             partyMemberInput.appendTo('#partyLeft');
@@ -1162,7 +1164,7 @@ var nexGui = {
     
             $('#stats_instance_table').remove();
              $('<p></p>')
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Instance Stats"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).html("Instance Stats"))
                 .appendTo('#statsLeft');
             $("<table></table>", {
                 id: "stats_instance_table",
@@ -1182,7 +1184,7 @@ var nexGui = {
             
             $('#stats_session_table').remove();
              $('<p></p>')
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).text("Session Stats"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold"}).html("Session Stats"))
                 .appendTo('#statsRight');
             $("<table></table>", {
                 id: "stats_session_table",
@@ -1205,14 +1207,14 @@ var nexGui = {
             $('#stats_session_table tr').remove();
             this.instanceEntries.forEach(e => {
                 let entry = $('<tr></tr>', {id: `stats_${e.id}`});
-                $('<td></td>', {}).text(`${e.name}:`).appendTo(entry);
-                $('<td></td>', {}).text(`${e.value()}`).appendTo(entry);
+                $('<td></td>', {}).html(`${e.name}:`).appendTo(entry);
+                $('<td></td>', {}).html(`${e.value()}`).appendTo(entry);
                 entry.appendTo('#stats_instance_table');
             });
             this.sessionEntries.forEach(e => {
                 let entry = $('<tr></tr>', {id: `stats_${e.id}`});
-                $('<td></td>', {}).text(`${e.name}:`).appendTo(entry);
-                $('<td></td>', {}).text(`${e.value()}`).appendTo(entry);
+                $('<td></td>', {}).html(`${e.name}:`).appendTo(entry);
+                $('<td></td>', {}).html(`${e.value()}`).appendTo(entry);
                 entry.appendTo('#stats_session_table');
             });
         }
@@ -1253,7 +1255,7 @@ var nexGui = {
                display:'table-cell',
                 width: '30%',
                 color: color
-           }).text(who)
+           }).html(who)
         },
         // There seems to be an industry guideline that you should not use HTML table for formatting purposes.
         // Rewrote this function to replicate the evenly spaced out display with divs.
@@ -1292,19 +1294,19 @@ var nexGui = {
             $("<div></div>").css({
                 display:'table-cell',
                 width: '5%'
-            }).text('').appendTo(row);
+            }).html('').appendTo(row);
             this.formatWho(who).appendTo(row)
 
             $('<div></div>').css({
                 display:'table-cell',
                 width: '30%',
                 color: `${whatColor || ''}`
-            }).text(`${whatText || what}`).appendTo(row);
+            }).html(`${whatText || what}`).appendTo(row);
 
             $("<div></div>").css({
                 display:'table-cell',
                 color: `${subjectColor || ''}`
-            }).text(`${subjectText || subject}`).appendTo(row)
+            }).html(`${subjectText || subject}`).appendTo(row)
 
             nexPrint(tab[0].outerHTML);  
         },
@@ -1328,23 +1330,23 @@ var nexGui = {
             $("<div></div>").css({
                 display:'table-cell',
                     width: '5%'
-            }).text('').appendTo(row);
+            }).html('').appendTo(row);
             this.formatWho(who).appendTo(row);
             
             let cellWhat = $('<div></div>').css({
                 display:'table-cell',
                     width: '30%'
                 }).appendTo(row);
-            $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
-            $('<span></span>', {style:"color:orange"}).text(what.toProperCase()).appendTo(cellWhat);
-            $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).html('[').appendTo(cellWhat);
+            $('<span></span>', {style:"color:orange"}).html(what.toProperCase()).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).html(`]`).appendTo(cellWhat);
                 
             
             if (subject.toLowerCase() == 'you') {
                 $("<div></div>").css({
                     display:'table-cell',
                     color: 'cyan'
-                }).text('Self').appendTo(row);
+                }).html('Self').appendTo(row);
                 nexPrint(tab[0].outerHTML); 
                 return;
             }
@@ -1352,23 +1354,23 @@ var nexGui = {
             // Is the target a player?
             if(!nexGui.cdb.players[subject]) {
                 // If the target is not a player then the attack could possibly crit.
-                $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
+                $('<span></span>', {style:"color:white"}).html(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
                 if (subject.toLowerCase() == GMCP.TargetText.toLowerCase()) {
-                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellWhat);
-                    $('<span></span>', {style:'color:grey'}).text(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`).appendTo(cellWhat);
-                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellWhat);
+                    $('<span></span>', {style:"color:white"}).html('(').appendTo(cellWhat);
+                    $('<span></span>', {style:'color:grey'}).html(`${GMCP.TargetHP?/*GMCP.TargetHP*/(GMCP.TargetHP_Change)+"%":''}`).appendTo(cellWhat);
+                    $('<span></span>', {style:"color:white"}).html(')').appendTo(cellWhat);
                     
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));
                     let cellSubject = $("<div></div>").css({
                         display:'table-cell'
                     })
-                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
-                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
-                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);
-                    $('<span></span>', {style:'color:white'}).text(GMCP.TargetText).appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).html(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).html(')').appendTo(cellSubject);
+                    $('<span></span>', {style:'color:white'}).html(GMCP.TargetText).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 } else {
                     this.formatWho(GMCP.TargetText).css({color: 'white', width:'auto'}).appendTo(row)
@@ -1379,25 +1381,25 @@ var nexGui = {
         },
         attackMsgBrief(what, subject) {
             let cellWhat = $('<span></span>')
-            $('<span></span>', {style:"color:white"}).text('[').appendTo(cellWhat);
-            $('<span></span>', {style:"color:orange"}).text(what).appendTo(cellWhat);
-            $('<span></span>', {style:"color:white"}).text(`]`).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).html('[').appendTo(cellWhat);
+            $('<span></span>', {style:"color:orange"}).html(what).appendTo(cellWhat);
+            $('<span></span>', {style:"color:white"}).html(`]`).appendTo(cellWhat);
 
             let cellSubject = $('<span></span>')
             // Is the target a player?
             if(!nexGui.cdb.players[subject]) {
                 // If the target is not a player then the attack could possibly crit.
-                $('<span></span>', {style:"color:white"}).text(`:${this.checkCrit()}`).appendTo(cellWhat);
+                $('<span></span>', {style:"color:white"}).html(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
                 if (subject.toLowercase() == GMCP.TargetText) {                 
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
-                    $('<span></span>', {style:"color:white"}).text('(').appendTo(cellSubject);
-                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).text(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
-                    $('<span></span>', {style:"color:white"}).text(')').appendTo(cellSubject);                   
+                    $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).html(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).html(')').appendTo(cellSubject);                   
                 } else {
-                    cellSubject.text('');
+                    cellSubject.html('');
                 }
             }
 
@@ -1425,7 +1427,7 @@ var nexGui = {
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'})
-            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Class').appendTo(toggleTableLeft);
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).html('Class').appendTo(toggleTableLeft);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
     
@@ -1436,7 +1438,7 @@ var nexGui = {
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'})
-            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Defences').appendTo(toggleTableRight);
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).html('Defences').appendTo(toggleTableRight);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
     
@@ -1468,7 +1470,7 @@ var nexGui = {
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'})
-            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Nexus Config').appendTo(toggleTableLeft);
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).html('Nexus Config').appendTo(toggleTableLeft);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableLeft);
     
@@ -1479,7 +1481,7 @@ var nexGui = {
                 //'table-layout':'fixed',
                 'max-width':'100%',
                 'border-spacing':'0px'})
-            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('nexGui Config').appendTo(toggleTableRight);
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).html('nexGui Config').appendTo(toggleTableRight);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
             $('<th></th>', {style:"width:auto"}).appendTo(toggleTableRight);
     
@@ -1508,15 +1510,15 @@ var nexGui = {
                 client.redraw_interface()
             })
             .appendTo(cell);
-            $("<option></option>", {value: 7}).text(7).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 8}).text(8).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 9}).text(9).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 10}).text(10).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 11}).text(11).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 12}).text(12).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 13}).text(13).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 14}).text(14).appendTo(fontSizeSelectList);
-            $("<option></option>", {value: 15}).text(15).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 7}).html(7).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 8}).html(8).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 9}).html(9).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 10}).html(10).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 11}).html(11).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 12}).html(12).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 13}).html(13).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 14}).html(14).appendTo(fontSizeSelectList);
+            $("<option></option>", {value: 15}).html(15).appendTo(fontSizeSelectList);
             $('#nexusFontSizeSelectList').val(client.font_size);
 
 
@@ -1545,7 +1547,7 @@ var nexGui = {
                     'width': '100%',
                     'text-align': 'center'
                 })
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Missing Defs"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Missing Defs"))
                 .appendTo(this.location);
         },
         add(def) {
@@ -1566,7 +1568,7 @@ var nexGui = {
                 'text-shadow':'2px 1px lightpink',
                 margin: '2px 0px 0px 0px'
             })
-            .text(def.toProperCase())
+            .html(def.toProperCase())
             d.appendTo(this.location);
         },
         remove(def) {
@@ -1591,7 +1593,7 @@ var nexGui = {
                     'font-size': '13px',
                     'text-align': 'center'
                 })
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).text("Afflictions"))
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Afflictions"))
                 .appendTo(this.location);
         },
         add(aff) {
@@ -1610,7 +1612,7 @@ var nexGui = {
                 //opacity: '60%',
                 margin: '2px 0px 0px 0px'
             })
-            .text(aff.toProperCase())
+            .html(aff.toProperCase())
             a.appendTo(this.location);
         },
         remove(aff) {
@@ -1678,7 +1680,7 @@ var nexGui = {
                     });
                     this._animationScale.onfinish = function() {
                         clearInterval(this._interval);
-                        $(`#${this._id}-text`).text(this._duration);
+                        $(`#${this._id}-text`).html(this._duration);
                     }.bind(this);
                 } else {
                     this._animationScale = this._target.animate(nexGui.timer.animations.gaugeEmpty, {
@@ -1695,7 +1697,7 @@ var nexGui = {
                     });
                     this._animationScale.onfinish = function() {
                         clearInterval(this._interval);
-                        $(`#${this._id}-text`).text(0);
+                        $(`#${this._id}-text`).html(0);
                     }.bind(this);
                 }
                 this.stop();
@@ -1706,8 +1708,8 @@ var nexGui = {
             addTimer() {
                 let row = $('<div></div>', {class: "nexGuiTimerContainer"}).appendTo(this._location)
                 $('<div></div>', {id: `${this._id}-gauge`, class: "nexGuiTimerGauge"}).appendTo(row);
-                $('<div></div>', {class: "nexGuiTimerLabel"}).text(this._label).appendTo(row);
-                $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).text(this._duration).appendTo(row);
+                $('<div></div>', {class: "nexGuiTimerLabel"}).html(this._label).appendTo(row);
+                $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).html(this._duration).appendTo(row);
 
                 nexGui.inject(`.nexGuiTimerContainer {
                     position: relative;
@@ -1750,7 +1752,7 @@ var nexGui = {
                 this._animationColor.play();
 
                 clearInterval(this._interval);
-                this._interval = setInterval(function() {$(`#${this._id}-text`).text(parseFloat(this._duration-this._animationScale.currentTime/1000).toFixed(1));}.bind(this),100);
+                this._interval = setInterval(function() {$(`#${this._id}-text`).html(parseFloat(this._duration-this._animationScale.currentTime/1000).toFixed(1));}.bind(this),100);
             }
             stop() {
                 this._animationScale.finish();
@@ -1778,7 +1780,7 @@ var nexGui = {
                 'justify-content': 'space-between',
                 height: '100%'
             }).appendTo(this.location);
-            $('<div></div>', {style: 'text-decoration:underline;font-weight:bold;text-align:center'}).text('Timers').prependTo(this.location);
+            $('<div></div>', {style: 'text-decoration:underline;font-weight:bold;text-align:center'}).html('Timers').prependTo(this.location);
             let timerTop = $('<div></div>', {id: 'nexTimerTableTop'}).css({
                 'font-size': this.font_size,
                 color: this.font_color,
@@ -1814,18 +1816,18 @@ var nexGui = {
                 display:'block',
                 'font-weight':'bold',
                 'font-size':`${this.font_size}`
-            }).text(label).appendTo(row);
+            }).html(label).appendTo(row);
             $('<td></td>', {id: `${id}Timer`, class: "nexGui_timer"}).css({
                 padding:'0px 5px 0px 0px',
                 width:'4ch',
                 'text-align':'right',
                 display:'block'
-        }).text(0).appendTo(row)
+        }).html(0).appendTo(row)
                    
             this[id] = {
                 id: id,
                 duration: duration+1,
-                start() {$(`#${id}Timer`).text(this.duration)}
+                start() {$(`#${id}Timer`).html(this.duration)}
             }
         },
         
@@ -1846,7 +1848,7 @@ var nexGui = {
                 'max-width':'100%',
                 'border-spacing':'0px'
             })
-            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).text('Timers').appendTo(timerTable);
+            $('<caption></caption>', {style: 'text-decoration:underline;font-weight:bold'}).html('Timers').appendTo(timerTable);
             $('<th></th>', {style:"width:auto"}).appendTo(timerTable);
             $('<th></th>', {style:"width:4ch"}).appendTo(timerTable);
             
@@ -1893,7 +1895,7 @@ var nexGui = {
             if (index == 24) {return}
             for(let i = index+1; i < 25; i++) {
                 let entry = $('<div></div>', {class: 'nexGui_feed'}).css({'font-size':this.font_size})
-                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).text(client.getTimeNoMS()+" ").appendTo(entry)
+                $('<span></span>', {class: "timestamp"}).css({color:'grey'}).html(client.getTimeNoMS()+" ").appendTo(entry)
                 $('<span></span>').append(nexGui.colors.highlightNames(data[i].description)).appendTo(entry)
                 entry.appendTo(this.location);
                 if ($(this.location).children().length > 100) {
@@ -1913,9 +1915,9 @@ var nexGui = {
             let row = $('<div></div>', {style:"display:table-row"}).appendTo(location);
 
             if (timeFormat == 'noms') {
-                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).text(client.getTimeNoMS()+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).html(client.getTimeNoMS()+" ").appendTo(row);
             } else {
-                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).text(client.getTime('ms')+" ").appendTo(row);
+                $('<div></div>', {class: "timestamp"}).css({display: 'table-cell', padding: '0px 5px 0px 0px'}).html(client.getTime('ms')+" ").appendTo(row);
             }
             if (!Array.isArray(msg)) {
                 msg = [msg];
@@ -1994,7 +1996,7 @@ var nexGui = {
                 'font-size': '13px'
             }).appendTo(this.location);
             $("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"})
-            .text("Self State")
+            .html("Self State")
             .appendTo(title)
             
         }
@@ -2014,7 +2016,7 @@ var nexGui = {
                 'font-size': '13px'
             }).appendTo(this.location);
             $("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"})
-            .text("Target State")
+            .html("Target State")
             .appendTo(title);
         }
     
@@ -2235,10 +2237,10 @@ var nexGui = {
             }).appendTo(tab);
             $("<th></th>", {
                 style: 'width:10em'
-            }).text('Command').appendTo(header);
+            }).html('Command').appendTo(header);
             $("<th></th>", {
                 style: 'width:auto'
-            }).text('Summary').appendTo(header);
+            }).html('Summary').appendTo(header);
         
             for (let x in cmds) {
                 let row = $("<tr></tr>", {
@@ -2246,10 +2248,10 @@ var nexGui = {
                 }).appendTo(tab);
                 $("<td></td>", {
                     style: 'color:grey'
-                }).text(cmds[x].cmd).appendTo(row);
+                }).html(cmds[x].cmd).appendTo(row);
                 $("<td></td>", {
                     style: 'color:grey;'
-                }).text(cmds[x].txt).appendTo(row);
+                }).html(cmds[x].txt).appendTo(row);
             }
             nexGui.notice('Aliases for user interaction');
             print(tab[0].outerHTML);

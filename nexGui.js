@@ -377,6 +377,12 @@ var nexGui = {
                 ow_Write(selector, timestamp+s);
             }
         }
+
+        client.next_line = function() {
+            let nextLine = current_block[current_block.indexOf(current_line)+1];
+            console.log(nextLine);
+            return nextLine.parsed_line ? nextLine.parsed_line.text() : false;
+        }
         
         //nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
 
@@ -682,9 +688,18 @@ var nexGui = {
             sip: {color: 'HotPink', text:'Sip'},
             focus: {color: 'BlueViolet', text: 'Focus'},
             tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
-            attack: {color: 'red', text: "Attack"},
+
+            attack: {color: 'tomato', text: "\u00AB Attack \u00BB"},
+            stun: {color: 'red', text: "\u00AB Stun \u00BB"},
             prone: {color: 'red', text: "\u00AB Prone \u00BB"},
-            
+            entangled: {color: 'red', text: "\u00AB Entangled \u00BB"},
+            blackout: {color: 'red', text: "\u00AB Blackout \u00BB"},
+            burning: {color: 'red', text: "\u00AB Burning \u00BB"},
+            dizziness: {color: 'red', text: "\u00AB Dizziness \u00BB"},
+            epilepsy: {color: 'red', text: "\u00AB Epilepsy \u00BB"},
+            unblind: {color: 'red', text: "\u00AB Unblind \u00BB"},
+            brokenleg: {color: 'red', text: "\u00AB Broken Leg \u00BB"},
+            brokenarm: {color: 'red', text: "\u00AB Broken Arm \u00BB"},
         },
         subjects: {
             self: {color: 'lightpink', text: 'Self'},
@@ -790,7 +805,7 @@ var nexGui = {
                     this.addEntity(npc);
                     return;
                 }
-                let entry = $('<tr></tr>', {id: `npc-${npc.id}`}).css({'font-size':this.size});
+                let entry = $('<tr></tr>', {id: `npc-${npc.id}`, class:`${GMCP.Target == npc.id ? 'nexGui_room-target' : ''}`}).css({'font-size':this.size});
                 $('<td></td>', {style:`padding: 0px 5px 0px 2px;color:${this.idColor}`}).html(nexGui.room.displayID?npc.id:"").appendTo(entry);
                 $('<td></td>', {style:`color:${this.nameColor};padding:0px`}).html(npc.name).appendTo(entry);
                 entry.on('click', (e) => {
@@ -829,6 +844,7 @@ var nexGui = {
                 } else {
                     this.guardCount++
                     $('#npc-guardCount').html(`(${this.guardCount}x)`)
+                    entry.appendTo('#room_npc_table');
                 }
             },
             addEntity(npc) {
@@ -845,6 +861,7 @@ var nexGui = {
                 } else {
                     this.entityCount++
                     $('#npc-entityCount').html(`(${this.entityCount}x)`)
+                    entry.appendTo('#room_npc_table');
                 }
             }
         },

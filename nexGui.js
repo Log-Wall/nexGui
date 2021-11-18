@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.8.2',
+    version: '0.8.4',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -381,7 +381,7 @@ var nexGui = {
         client.next_line = function() {
             let nextLine = current_block[current_block.indexOf(current_line)+1];
             console.log(nextLine);
-            return nextLine.parsed_line ? nextLine.parsed_line.text() : false;
+            return nextLine.parsed_line ? nextLine.parsed_line.text() : '';
         }
         
         //nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
@@ -394,6 +394,7 @@ var nexGui = {
         client.send_direct('allies');
         client.send_direct('def');
         client.send_direct('ql');
+        setTimeout(()=>{nexGui.notice(' .nxs package is dated 11/18/2021. Update for the late')}, 2000)
     },
     restoreEvents() {
         nexSys.eventStream.removeListener('Char.Items.List', 'nexGuiRoomAddAll');
@@ -694,6 +695,7 @@ var nexGui = {
             prone: {color: 'red', text: "\u00AB Prone \u00BB"},
             entangled: {color: 'red', text: "\u00AB Entangled \u00BB"},
             blackout: {color: 'red', text: "\u00AB Blackout \u00BB"},
+            loki: {color: 'red', text: "\u00AB Loki \u00BB"},
             burning: {color: 'red', text: "\u00AB Burning \u00BB"},
             dizziness: {color: 'red', text: "\u00AB Dizziness \u00BB"},
             epilepsy: {color: 'red', text: "\u00AB Epilepsy \u00BB"},
@@ -844,7 +846,7 @@ var nexGui = {
                 } else {
                     this.guardCount++
                     $('#npc-guardCount').html(`(${this.guardCount}x)`)
-                    entry.appendTo('#room_npc_table');
+                    $('#npc-guards').appendTo('#room_npc_table');
                 }
             },
             addEntity(npc) {
@@ -861,7 +863,7 @@ var nexGui = {
                 } else {
                     this.entityCount++
                     $('#npc-entityCount').html(`(${this.entityCount}x)`)
-                    entry.appendTo('#room_npc_table');
+                    $('#npc-entities').appendTo('#room_npc_table');
                 }
             }
         },
@@ -2139,7 +2141,8 @@ var nexGui = {
             console.log('MongoDB loaded');
             nexGui.notice(`GUI version ${nexGui.version} loaded and ready for use.`);
             nexGui.notice(`Player database loaded with ${entries.length} entries.`);
-            nexGui.notice(`Latest Nexus package dated: 2021-10-29`);
+            nexGui.notice(`Current Nexus package dated: 2021-11-18.`);
+            nexGui.notice('<span>Download the latest self-updating package (<a style="color:white; text-decoration:underline" target="_blank" href="https://drive.google.com/file/d/1032lTwNMWDTsfy_8tprBvsPCi7FYukKL/view?usp=sharing">HERE</a>)</span>');
         },
         ignoreList: [
             /a dervish/,

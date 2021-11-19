@@ -1398,19 +1398,19 @@ var nexGui = {
             nexPrint(tab[0].outerHTML);  
         },
         attackMsgBrief(what, subject) {
-            let cellWhat = $('<span></span>')
+            let cellWhat = $('<span></span>', {class:"mono"})
             $('<span></span>', {style:"color:white"}).html('[').appendTo(cellWhat);
             $('<span></span>', {style:"color:orange"}).html(what).appendTo(cellWhat);
             $('<span></span>', {style:"color:white"}).html(`]`).appendTo(cellWhat);
 
-            let cellSubject = $('<span></span>')
+            let cellSubject = $('<span></span>', {class:"mono"})
             // Is the target a player?
             if(!nexGui.cdb.players[subject]) {
                 // If the target is not a player then the attack could possibly crit.
                 $('<span></span>', {style:"color:white"}).html(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
-                if (subject.toLowercase() == GMCP.TargetText) {                 
+                if (subject.toLowerCase() == GMCP.TargetText) {                 
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);

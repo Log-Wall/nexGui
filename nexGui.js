@@ -1,7 +1,7 @@
 'use strict'
 
 var nexGui = {
-    version: '0.8.4',
+    version: '0.8.5',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -394,7 +394,6 @@ var nexGui = {
         client.send_direct('allies');
         client.send_direct('def');
         client.send_direct('ql');
-        setTimeout(()=>{nexGui.notice(' .nxs package is dated 11/18/2021. Update for the late')}, 2000)
     },
     restoreEvents() {
         nexSys.eventStream.removeListener('Char.Items.List', 'nexGuiRoomAddAll');

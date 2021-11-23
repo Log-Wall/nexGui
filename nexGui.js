@@ -511,17 +511,17 @@ var nexGui = {
         nexSys.eventStream.registerEvent('Char.Defences.List', nexGuiDefences);
 
         let nexGuiAfflictionAdd = function(args) {
-            nexGui.self.aff.add(args.name);
+            nexGui.aff.add(args.name);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.Add', nexGuiAfflictionAdd);
 
         let nexGuiAfflictionRemove = function(args) {
-            nexGui.self.aff.remove(args[0]);
+            nexGui.aff.remove(args[0]);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.Remove', nexGuiAfflictionRemove);
 
         let nexGuiAfflictions = function(args) {
-            nexGui.self.aff.update(args);
+            nexGui.aff.update(args);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.List', nexGuiAfflictions);
 
@@ -2000,52 +2000,50 @@ var nexGui = {
             .appendTo(title)
             
         },
-
-        aff: {
-            location: '#tbl_5c',
-            font_size: '11px',
-            layout() {
-                $(this.location).empty();
-                $('<div></div>')
-                    .css({
-                        'width': '100%',
-                        'font-size': '13px',
-                        'text-align': 'center'
-                    })
-                    .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Afflictions"))
-                    .appendTo(this.location);
-            },
-            add(aff) {
-                if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
-    
-                aff = aff.replace('(','').replace(')','').replace(' ', '-');
-    
-                let a = $('<div></div>', {id: `aff-${aff}`})
-                .css({
-                    color: this.font_color,
-                    'font-size': this.font_size,
-                    //'background-color': this.background_color,
-                    width: '100%',
-                    'text-align': 'center',
-                    //'font-weight': 'bold',
-                    //opacity: '60%',
-                    margin: '2px 0px 0px 0px'
-                })
-                .html(aff.toProperCase())
-                a.appendTo(this.location);
-            },
-            remove(aff) {
-                aff = aff.replace('(','').replace(')','').replace(' ', '-');
-                $(`#aff-${aff}`).remove();
-            },
-            update(affs) {
-                this.layout();
-                affs.forEach(e=>{nexGui.aff.add(e.name)})
-            }
-            
-        },
     },
+    aff: {
+        location: '#tbl_5c',
+        font_size: '11px',
+        layout() {
+            $(this.location).empty();
+            $('<div></div>')
+                .css({
+                    'width': '100%',
+                    'font-size': '13px',
+                    'text-align': 'center'
+                })
+                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Afflictions"))
+                .appendTo(this.location);
+        },
+        add(aff) {
+            if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
 
+            aff = aff.replace('(','').replace(')','').replace(' ', '-');
+
+            let a = $('<div></div>', {id: `aff-${aff}`})
+            .css({
+                color: this.font_color,
+                'font-size': this.font_size,
+                //'background-color': this.background_color,
+                width: '100%',
+                'text-align': 'center',
+                //'font-weight': 'bold',
+                //opacity: '60%',
+                margin: '2px 0px 0px 0px'
+            })
+            .html(aff.toProperCase())
+            a.appendTo(this.location);
+        },
+        remove(aff) {
+            aff = aff.replace('(','').replace(')','').replace(' ', '-');
+            $(`#aff-${aff}`).remove();
+        },
+        update(affs) {
+            this.layout();
+            affs.forEach(e=>{nexGui.aff.add(e.name)})
+        }
+        
+    },
     target: {
         font_size: '11px',
         location: '#tbl_5d',

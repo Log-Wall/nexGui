@@ -511,17 +511,17 @@ var nexGui = {
         nexSys.eventStream.registerEvent('Char.Defences.List', nexGuiDefences);
 
         let nexGuiAfflictionAdd = function(args) {
-            nexGui.aff.add(args.name);
+            nexGui.self.aff.add(args.name);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.Add', nexGuiAfflictionAdd);
 
         let nexGuiAfflictionRemove = function(args) {
-            nexGui.aff.remove(args[0]);
+            nexGui.self.aff.remove(args[0]);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.Remove', nexGuiAfflictionRemove);
 
         let nexGuiAfflictions = function(args) {
-            nexGui.aff.update(args);
+            nexGui.self.aff.update(args);
         }
         nexSys.eventStream.registerEvent('Char.Afflictions.List', nexGuiAfflictions);
 
@@ -583,6 +583,22 @@ var nexGui = {
             nexGui.character.profession = profession;
         }
         nexSys.eventStream.registerEvent('Char.Status', nexGuiClassChange);
+
+        let nexGuiWielded = function(args) {
+            if (args.location != "inv") {return;}
+
+            if (!args.item.attrib) {
+                if (args.item.id == nexGui.self.wielded.left.id) {nexGui.self.wielded.left = false}
+                if (args.item.id == nexGui.self.wielded.right.id) {nexGui.self.wielded.right = false}
+            }
+
+            if(args.item.attrib.indexOf('l') > -1) {
+                nexGui.self.wielded.left = args.item;
+            } else if(args.item.attrib.indexOf('L') > -1) {
+                nexGui.self.wielded.right = args.item;
+            } 
+        }
+        nexSys.eventStream.registerEvent('Char.Items.Update', nexGuiWielded);
     },   
     resize(left, middle) {
         left = left < 1 ? left : left/100;
@@ -725,6 +741,7 @@ var nexGui = {
             stun: {color: 'red', text: "\u00AB Stun \u00BB"},
             prone: {color: 'red', text: "\u00AB Prone \u00BB"},
             entangled: {color: 'red', text: "\u00AB Entangled \u00BB"},
+            transfixed: {color: 'red', text: "\u00AB Transfixed \u00BB"},
             blackout: {color: 'red', text: "\u00AB Blackout \u00BB"},
             loki: {color: 'red', text: "\u00AB Loki \u00BB"},
             burning: {color: 'red', text: "\u00AB Burning \u00BB"},
@@ -1541,15 +1558,18 @@ var nexGui = {
             nexGui.addOption('#optionsToggleTableLeft', 'Echo Input', client.echo_input);
             nexGui.addOption('#optionsToggleTableLeft', 'Single Prompt', client.gag_prompts);
             nexGui.addOption('#optionsToggleTableLeft', 'Display GMCP', client.echo_gmcp);
+            nexGui.addOption('#optionsToggleTableLeft', 'Display Timestamps', client.show_timestamps);
             // First we clear out any potential duplicate event listeners. (just in case)
             nexSys.eventStream.removeListener('nexGui-option-EchoInput', 'echoinputToggle');
             nexSys.eventStream.removeListener('nexGui-option-SinglePrompt', 'singlepromptToggle');
             nexSys.eventStream.removeListener('nexGui-option-DisplayGMCP', 'displaygmcpToggle');
+            nexSys.eventStream.removeListener('nexGui-option-DisplayTimestamps', 'displaytimestampsToggle');
             // Now we add a listener with a simple function to execute when a toggle is changed. 
             //In these cases it reads the true false value and changes the defence priority between 25 and 0
             nexSys.eventStream.registerEvent('nexGui-option-EchoInput', function echoinputToggle(tf) {client.echo_input = tf ? true : false});
             nexSys.eventStream.registerEvent('nexGui-option-SinglePrompt', function singlepromptToggle(tf) {client.gag_prompts = tf ? true : false});
             nexSys.eventStream.registerEvent('nexGui-option-DisplayGMCP', function displaygmcpToggle(tf) {client.echo_gmcp = tf ? true : false});
+            nexSys.eventStream.registerEvent('nexGui-option-DisplayTimestamps', function displaytimestampsToggle(tf) {client.show_timestamps = tf ? true : false});
 
             let nexusFontSizeSelect = $("<tr></tr>", {id: "nexusFontSizeSelect"}).appendTo('#optionsToggleTableLeft');
             $("<td>Font Size</td>", {}).appendTo(nexusFontSizeSelect);
@@ -1630,50 +1650,6 @@ var nexGui = {
             this.keepup.filter(x => Object.keys(GMCP.Defences).indexOf(x)==-1)
                 .forEach(e=>this.add(e));
         }       
-    },
-
-    aff: {
-        location: '#tbl_5c',
-        font_size: '12px',
-        layout() {
-            $(this.location).empty();
-            $('<div></div>')
-                .css({
-                    'width': '100%',
-                    'font-size': '13px',
-                    'text-align': 'center'
-                })
-                .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Afflictions"))
-                .appendTo(this.location);
-        },
-        add(aff) {
-            if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
-
-            aff = aff.replace('(','').replace(')','').replace(' ', '-');
-
-            let a = $('<div></div>', {id: `aff-${aff}`})
-            .css({
-                color: this.font_color,
-                'font-size': this.font_size,
-                //'background-color': this.background_color,
-                width: '100%',
-                'text-align': 'center',
-                //'font-weight': 'bold',
-                //opacity: '60%',
-                margin: '2px 0px 0px 0px'
-            })
-            .html(aff.toProperCase())
-            a.appendTo(this.location);
-        },
-        remove(aff) {
-            aff = aff.replace('(','').replace(')','').replace(' ', '-');
-            $(`#aff-${aff}`).remove();
-        },
-        update(affs) {
-            this.layout();
-            affs.forEach(e=>{nexGui.aff.add(e.name)})
-        }
-        
     },
 
     timer: {
@@ -2002,6 +1978,14 @@ var nexGui = {
     self: {
         font_size: '11px',
         location: '#tbl_5c',
+        wielded: {
+            left: {},
+            right: {},
+            display() {
+                let wielded = $('<div></div>').css({'display':'flex'})
+                n
+            }
+        },
 
         layout() {
             $(this.location).empty();
@@ -2015,7 +1999,51 @@ var nexGui = {
             .html("Self State")
             .appendTo(title)
             
-        }
+        },
+
+        aff: {
+            location: '#tbl_5c',
+            font_size: '11px',
+            layout() {
+                $(this.location).empty();
+                $('<div></div>')
+                    .css({
+                        'width': '100%',
+                        'font-size': '13px',
+                        'text-align': 'center'
+                    })
+                    .append($("<span></span>", {style: "text-decoration:underline;font-weight:bold;text-align:center"}).html("Afflictions"))
+                    .appendTo(this.location);
+            },
+            add(aff) {
+                if (['blindness', 'deafness', 'insomnia'].indexOf(aff) != -1) {return;}
+    
+                aff = aff.replace('(','').replace(')','').replace(' ', '-');
+    
+                let a = $('<div></div>', {id: `aff-${aff}`})
+                .css({
+                    color: this.font_color,
+                    'font-size': this.font_size,
+                    //'background-color': this.background_color,
+                    width: '100%',
+                    'text-align': 'center',
+                    //'font-weight': 'bold',
+                    //opacity: '60%',
+                    margin: '2px 0px 0px 0px'
+                })
+                .html(aff.toProperCase())
+                a.appendTo(this.location);
+            },
+            remove(aff) {
+                aff = aff.replace('(','').replace(')','').replace(' ', '-');
+                $(`#aff-${aff}`).remove();
+            },
+            update(affs) {
+                this.layout();
+                affs.forEach(e=>{nexGui.aff.add(e.name)})
+            }
+            
+        },
     },
 
     target: {

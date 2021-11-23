@@ -59,7 +59,38 @@ var nexGui = {
         this.inject('body {line-height:18px}');
 
         // Timer gauges
-
+        this.inject(`.nexGuiTimerContainer {
+            position: relative;
+            height: 16px;
+            border: 1px silver solid;
+            border-radius: 4px;
+            overflow: hidden;
+            margin:3px 0px
+        }`)
+        this.inject(`.nexGuiTimerGauge {
+                height:100%;
+                width:100%;
+                transform-origin: left center;
+                transform: scaleX(1);
+                z-index: 1;
+                will-change: transform, color;
+                position: relative
+        }`)
+        this.inject(`.nexGuiTimerLabel {
+                position: relative;
+                top: -100%;
+                width: 65%;
+                z-index: 3;
+                margin: 0px 0px 0px 5px;
+                display: inline-block
+        }`)
+        this.inject(`.nexGuiTimerText {
+                position: relative;
+                top: -100%;
+                width: 25%;
+                z-index: 3;
+                display: inline-block
+        }`)
 
         // Mouse over API display
 
@@ -388,6 +419,7 @@ var nexGui = {
 
         this.restoreEvents();
         this.layout();
+        client.gag_comm = false;
         client.send_direct('stat');
         client.send_direct('pwho');
         client.send_direct('enemies');
@@ -1727,41 +1759,7 @@ var nexGui = {
                 let row = $('<div></div>', {class: "nexGuiTimerContainer"}).appendTo(this._location)
                 $('<div></div>', {id: `${this._id}-gauge`, class: "nexGuiTimerGauge"}).appendTo(row);
                 $('<div></div>', {class: "nexGuiTimerLabel"}).html(this._label).appendTo(row);
-                $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).html(this._duration).appendTo(row);
-
-                nexGui.inject(`.nexGuiTimerContainer {
-                    position: relative;
-                    height: 16px;
-                    border: 1px silver solid;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    margin:3px 0px
-                }`)
-                nexGui.inject(`.nexGuiTimerGauge {
-                        height:100%;
-                        width:100%;
-                        transform-origin: left center;
-                        transform: scaleX(1);
-                        z-index: 1;
-                        will-change: transform, color;
-                        position: relative
-                }`)
-                nexGui.inject(`.nexGuiTimerLabel {
-                        position: relative;
-                        top: -100%;
-                        width: 65%;
-                        z-index: 3;
-                        margin: 0px 0px 0px 5px;
-                        display: inline-block
-                }`)
-                nexGui.inject(`.nexGuiTimerText {
-                        position: relative;
-                        top: -100%;
-                        width: 25%;
-                        z-index: 3;
-                        display: inline-block
-                }`)
-                
+                $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).html(this._duration).appendTo(row);                
             }
             start() {
                 this._animationScale.cancel();

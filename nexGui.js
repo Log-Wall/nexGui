@@ -63,13 +63,14 @@ var nexGui = {
             position: relative;
             height: 16px;
             border: 1px silver solid;
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
             margin:3px 0px
         }`)
         this.inject(`.nexGuiTimerGauge {
                 height:100%;
                 width:100%;
+                border-radius: 5px;
                 transform-origin: left center;
                 transform: scaleX(1);
                 z-index: 1;
@@ -1661,6 +1662,7 @@ var nexGui = {
                 {transform: 'scaleX(0)'},
                 {transform: 'scaleX(1)'}
             ],
+            
             gaugeColorRG: [
                 {background:'crimson'},
                 {background:'red'},
@@ -1668,6 +1670,15 @@ var nexGui = {
                 {background:'yellow'},
                 {background:'green'}
             ],
+            /*
+            gaugeColorRG: [
+                {background: 'linear-gradient(black, crimson, silver)'},
+                {background: 'linear-gradient(black, red, silver)'},
+                {background: 'linear-gradient(black, orange, silver)'},
+                {background: 'linear-gradient(black, yellow, silver)'},
+                {background: 'linear-gradient(black, green, silver)'}
+            ],
+            */
             gaugeEmpty: [
                 {transform: 'scaleX(1)'},
                 {transform: 'scaleX(0)'}
@@ -1732,7 +1743,7 @@ var nexGui = {
             get interval() {return this._interval;}
             set target(id) {this._target = document.getElementById(`${id}-gauge`);}
             addTimer() {
-                let row = $('<div></div>', {class: "nexGuiTimerContainer"}).appendTo(this._location)
+                let row = $('<div></div>', {id: `${this._id}-timer`,class: "nexGuiTimerContainer"}).appendTo(this._location)
                 $('<div></div>', {id: `${this._id}-gauge`, class: "nexGuiTimerGauge"}).appendTo(row);
                 $('<div></div>', {class: "nexGuiTimerLabel"}).html(this._label).appendTo(row);
                 $('<div></div>', {id: `${this._id}-text`, class: "nexGuiTimerText"}).html(this._duration).appendTo(row);                
@@ -1754,7 +1765,8 @@ var nexGui = {
         add(id, label, duration = 0, style = 'grow', location='#nexTimerTableTop') {
             if (this.timers[id]) {
                 clearInterval(this.timers[id]._interval);
-                delete this.timers[id];   
+                delete this.timers[id];
+                $(`#${id}-timer`).remove();
             }            
             
             this.timers[id] = new this.Timer(id, label, duration, style, location);           
@@ -1779,7 +1791,7 @@ var nexGui = {
                 display: 'flex',
                 'flex-direction':'column',
                 'width': '100%',
-                'text-shadow':'2px 1px black'
+                'text-shadow':'-2px -1px black'
             });
 
             let timerBot = $('<div></div>', {id: 'nexTimerTableBot'}).css({

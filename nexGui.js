@@ -1441,8 +1441,17 @@ var nexGui = {
                     $('<span></span>', {style:'color:white'}).html(GMCP.TargetText).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 } else {
-                    this.formatWho(GMCP.TargetText).css({color: 'white', width:'auto'}).appendTo(row)
+                    let cellSubject = $("<div></div>").css({
+                        display:'table-cell'
+                    })
+                    $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);
+                    $('<span></span>').html('??%').appendTo(cellSubject);
+                    $('<span></span>', {style:"color:white"}).html(')').appendTo(cellSubject);
+                    $('<span></span>', {style:'color:white'}).html(GMCP.TargetText).appendTo(cellSubject);
+                    cellSubject.appendTo(row)                   
                 }
+            } else {
+                this.formatWho(subject).appendTo(row)
             }
 
             nexPrint(tab[0].outerHTML);  
@@ -1805,7 +1814,6 @@ var nexGui = {
             
             timerTop.appendTo('#nexTimerTable');
             timerBot.appendTo('#nexTimerTable');
-
         }
         /*addORIGINAL(id, label, duration = 0) {
             let row = $('<tr></tr>').appendTo('#nexTimerTable');

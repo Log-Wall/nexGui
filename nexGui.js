@@ -1445,9 +1445,9 @@ var nexGui = {
                         display:'table-cell'
                     })
                     $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);
-                    $('<span></span>').html('??%').appendTo(cellSubject);
+                    $('<span></span>').html('?%').appendTo(cellSubject);
                     $('<span></span>', {style:"color:white"}).html(')').appendTo(cellSubject);
-                    $('<span></span>', {style:'color:white'}).html(GMCP.TargetText).appendTo(cellSubject);
+                    $('<span></span>', {style:'color:white'}).html(subject).appendTo(cellSubject);
                     cellSubject.appendTo(row)                   
                 }
             } else {

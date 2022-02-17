@@ -46,6 +46,9 @@ var nexGui = {
         // Room target CSS
         this.inject('.nexGui_room-target   { outline: 1px solid red; }');
 
+        // Room players
+        this.inject('.nexGui_room-player   { margin: 1px 5px 1px 5px; padding: 2px; height: 17px; font-size: 12px}');        
+
         // Nexus override CSS
         this.inject('#user_input {width:100%;border-radius:0px;margin:0 0 0 0}');
         this.inject('#data_form {height:100%}');
@@ -573,7 +576,7 @@ var nexGui = {
                     profession = 'waterlord';
                     break;
             }
-            profession = profession.indexOf('dragon') != -1 ? 'dragon' : profession; // we will treat all dragons the same.
+            profession = profession.indexOf('dragon') != -1 ? profession.replace(" ", '') : profession;
             if (!nexGui[profession] || nexGui.character.profession == profession) {
                 nexGui.character.profession = profession;
                 return;
@@ -957,7 +960,7 @@ var nexGui = {
                 if($(`player-${player}`).length > 0) {
                     $(`player-${player}`).remove();
                 }
-                let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : ''}`})
+                let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : 'nexGui_room-player'}`})
                 .css({
                     color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
                     margin: '1px 5px 1px 5px',
@@ -1321,7 +1324,6 @@ var nexGui = {
 
             return $("<div></div>").css({
                display:'table-cell',
-                width: '30%',
                 color: color
            }).html(who)
         },

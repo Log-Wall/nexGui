@@ -535,7 +535,7 @@ var nexGui = {
         }
         nexSys.eventStream.registerEvent('IRE.Target.Info', nexGuiTargetInfo);
 
-        let nexGuiCharStatus = function(args) {
+        let nexGuiCharStatus = function() {
             nexGui.stats.update();
         }  
         nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
@@ -731,7 +731,13 @@ var nexGui = {
             jab:'orange',
             iron: 'orange',
             frostrive: 'orange',
-            overhand: 'orange'
+            overhand: 'orange',
+            dragonspit: 'orange',
+            dragonsap: 'orange',
+            slaver: 'orange',
+            deteriorate: 'orange',
+            scour: 'orange',
+            corrode: 'orange',
         },
         actions: {
             eat: {color: 'gold', text:'Eat'},
@@ -1139,6 +1145,7 @@ var nexGui = {
         sessionXP: parseInt(GMCP.Status.xp.replace('%','')) || 0,
         sessionDeaths: 0,
         critCount: 0,
+        month: 0,
         font_size: '11px',
         
         instanceEntries: [
@@ -1182,7 +1189,10 @@ var nexGui = {
             {
                 id: 'sessionGold',
                 name: 'Total Gold', 
-                value: () => {return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()}
+                value: () => {
+                    client.get_variable('nexGui').stats;54
+                    return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()
+                }
             },
             {
                 id: 'sessionTime',

@@ -1889,7 +1889,7 @@ var nexGui = {
         interval: 1000,
         _timer: {},
         _start() {
-            console.log('nexGui.feed._start() called. Timer now running at 1 second interval');
+            console.log(`nexGui.feed._start() called. Timer now running at ${this.interval/1000} second interval`);
             this._stop();
             this._timer = setInterval(nexGui.feed.fetch, this.interval);
         },
@@ -1912,6 +1912,10 @@ var nexGui = {
                     nexGui.feed.lastEntry = data[24];
                 }
                 nexGui.feed.add(data);
+            });
+
+            $.getJSON( 'https://api.achaea.com/characters.json', function(data) {
+                nexGui.feed.characters = data;
             });
         },
         add(data) {

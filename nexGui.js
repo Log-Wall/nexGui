@@ -744,6 +744,7 @@ var nexGui = {
             entangled: {color: 'red', text: "\u00AB Entangled \u00BB"},
             transfixed: {color: 'red', text: "\u00AB Transfixed \u00BB"},
             blackout: {color: 'red', text: "\u00AB Blackout \u00BB"},
+            stupidity: {color: 'red', text: "\u00AB Stupidity \u00BB"},
             loki: {color: 'red', text: "\u00AB Loki \u00BB"},
             burning: {color: 'red', text: "\u00AB Burning \u00BB"},
             dizziness: {color: 'red', text: "\u00AB Dizziness \u00BB"},
@@ -2021,6 +2022,7 @@ var nexGui = {
             
         },
     },
+
     aff: {
         location: '#tbl_5c',
         font_size: '11px',
@@ -2064,6 +2066,7 @@ var nexGui = {
         }
         
     },
+
     target: {
         font_size: '11px',
         location: '#tbl_5d',
@@ -2086,50 +2089,55 @@ var nexGui = {
 
     cdb: {
         players: {},
-        gmcpChannelPlayers(args) {
+        async gmcpChannelPlayers(args) {
             for(let i = 0; i < args.length; i++) {
                 if (!this.players[args[i].name]) {
-                    this.getCharacterByName(args[i].name);
+                    await this.getCharacterByName(args[i].name);
                 }
             }
         },
-        getCharacterServerList() {
-            $.getJSON( "https://api.achaea.com/characters.json", function( data ) {
+        async getCharacterServerList() {
+            $.getJSON( "https://api.achaea.com/characters.json", async function( data ) {
                 for (let i = 0; i < data.characters.length; i++) {
-                    nexGui.cdb.getCharacterByURI(data.characters[i].uri, data.name);
+                    await nexGui.cdb.getCharacterByURI(data.characters[i].uri, data.name);
                 }
             });
         },
-        addCharacterToMongo(data) {
+        async addCharacterToMongo(data) {
             data.time = client.Date();
             data.user = GMCP.Status.name;
+            data.level = parseInt(data.level);
+            data.player_kills = parseInt(data.player_kills);
+            data.xp_rank = parseInt(data.xp_rank);
+            data.explorer_rank = parseInt(data.explorer_rank);
+
             if (this.players[data.name]) {
                 if (data.city == "(hidden)" || data.city == "(none)") {
                     data.city = this.players[data.name].city;
                 }
-                nexGui.mongo.db.updateOne({'name':data.name}, data);
+                await nexGui.mongo.db.updateOne({'name':data.name}, data);
             } else {
-                nexGui.mongo.db.insertOne(data);
+                await nexGui.mongo.db.insertOne(data);
             }
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
         },
-        getCharacterByURI(uri, name) {
-            $.getJSON( uri, function( data ) {
-                nexGui.cdb.addCharacterToMongo(data);
+        async getCharacterByURI(uri, name) {
+            $.getJSON( uri, async function( data ) {
+                await nexGui.cdb.addCharacterToMongo(data);
             })
-            .fail(function() {
-                nexGui.mongo.db.deleteOne({'name':name})
+            .fail(async function() {
+                await nexGui.mongo.db.deleteOne({'name':name})
                 console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
             });
         },
         
-        getCharacterByName(name) {
-            $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", function ( data ) {
-                nexGui.cdb.addCharacterToMongo(data);
+        async getCharacterByName(name) {
+            $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", async function ( data ) {
+                await nexGui.cdb.addCharacterToMongo(data);
             })
-            .fail(function() {
-                nexGui.mongo.db.deleteOne({'name':name})
+            .fail(async function() {
+                await nexGui.mongo.db.deleteOne({'name':name})
                 console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
             });
         },
@@ -2175,12 +2183,12 @@ var nexGui = {
             this.mongodb = this.app.currentUser.mongoClient("mongodb-atlas");
             this.db = this.mongodb.db('nexCDB').collection('characters')
             //this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
-            let entries = await this.db.find({}, {projection: {_id:0, user: 0}});
+            let entries = await this.db.find({}, {projection: {name:1, fullname:1, city:1, house:1, level:1, class:1, mob_kills:1, player_kills:1, xp_rank:1, explorer_rank:1, time:1, _id:0}});
             entries.forEach(e=>{
                 nexGui.cdb.players[e.name]=e;
                 nexGui.cdb.players[e.name].regex=new RegExp('\\b'+e.name+'\\b', 'g');
             });
-            nexGui.cdb.getCharacterServerList();
+            await nexGui.cdb.getCharacterServerList();
             console.log('MongoDB loaded');
             nexGui.notice(`GUI version ${nexGui.version} loaded and ready for use.`);
             nexGui.notice(`Player database loaded with ${entries.length} entries.`);

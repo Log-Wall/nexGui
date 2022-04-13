@@ -46,6 +46,9 @@ var nexGui = {
         // Room target CSS
         this.inject('.nexGui_room-target   { outline: 1px solid red; }');
 
+        // Room players
+        this.inject('.nexGui_room-player   { margin: 1px 5px 1px 5px; padding: 2px; height: 17px; font-size: 12px}');        
+
         // Nexus override CSS
         this.inject('#user_input {width:100%;border-radius:0px;margin:0 0 0 0}');
         this.inject('#data_form {height:100%}');
@@ -532,7 +535,7 @@ var nexGui = {
         }
         nexSys.eventStream.registerEvent('IRE.Target.Info', nexGuiTargetInfo);
 
-        let nexGuiCharStatus = function(args) {
+        let nexGuiCharStatus = function() {
             nexGui.stats.update();
         }  
         nexSys.eventStream.registerEvent('Char.Status', nexGuiCharStatus);
@@ -573,7 +576,7 @@ var nexGui = {
                     profession = 'waterlord';
                     break;
             }
-            profession = profession.indexOf('dragon') != -1 ? 'dragon' : profession; // we will treat all dragons the same.
+            profession = profession.indexOf('dragon') != -1 ? profession.replace(" ", '') : profession;
             if (!nexGui[profession] || nexGui.character.profession == profession) {
                 nexGui.character.profession = profession;
                 return;
@@ -728,7 +731,13 @@ var nexGui = {
             jab:'orange',
             iron: 'orange',
             frostrive: 'orange',
-            overhand: 'orange'
+            overhand: 'orange',
+            dragonspit: 'orange',
+            dragonsap: 'orange',
+            slaver: 'orange',
+            deteriorate: 'orange',
+            scour: 'orange',
+            corrode: 'orange',
         },
         actions: {
             eat: {color: 'gold', text:'Eat'},
@@ -958,7 +967,7 @@ var nexGui = {
                 if($(`player-${player}`).length > 0) {
                     $(`player-${player}`).remove();
                 }
-                let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : ''}`})
+                let entry = $('<div></div>', {id: `player-${player}`, class:`${GMCP.Target == player ? 'nexGui_room-target' : 'nexGui_room-player'}`})
                 .css({
                     color: `${nexGui.colors.city[nexGui.cdb.players[player].city]||this.nameColor}`,
                     margin: '1px 5px 1px 5px',
@@ -1137,6 +1146,7 @@ var nexGui = {
         sessionXP: parseInt(GMCP.Status.xp.replace('%','')) || 0,
         sessionDeaths: 0,
         critCount: 0,
+        month: 0,
         font_size: '11px',
         
         instanceEntries: [
@@ -1180,7 +1190,10 @@ var nexGui = {
             {
                 id: 'sessionGold',
                 name: 'Total Gold', 
-                value: () => {return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()}
+                value: () => {
+                    client.get_variable('nexGui').stats;54
+                    return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()
+                }
             },
             {
                 id: 'sessionTime',
@@ -1322,7 +1335,6 @@ var nexGui = {
 
             return $("<div></div>").css({
                display:'table-cell',
-                width: '30%',
                 color: color
            }).html(who)
         },
@@ -1878,7 +1890,7 @@ var nexGui = {
         interval: 1000,
         _timer: {},
         _start() {
-            console.log('nexGui.feed._start() called. Timer now running at 1 second interval');
+            console.log(`nexGui.feed._start() called. Timer now running at ${this.interval/1000} second interval`);
             this._stop();
             this._timer = setInterval(nexGui.feed.fetch, this.interval);
         },
@@ -1901,6 +1913,10 @@ var nexGui = {
                     nexGui.feed.lastEntry = data[24];
                 }
                 nexGui.feed.add(data);
+            });
+
+            $.getJSON( 'https://api.achaea.com/characters.json', function(data) {
+                nexGui.feed.characters = data;
             });
         },
         add(data) {

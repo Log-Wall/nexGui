@@ -2011,16 +2011,16 @@ const nexGui = {
                 })
                 .appendTo(this.location);
             $('#tbl_2h3a').empty();
-                $('#tbl_2h3a').css({
-                    overflow: 'auto',
-                    height: '100%'
-                });
-                $('<div></div>', {id:"nexGuiAttackStream"})
-                    .css({
-                        'font-size':this.font_size,
-                        'line-height':'13px'
-                    })
-                    .appendTo('#tbl_2h3b');
+            $('#tbl_2h3a').css({
+                overflow: 'auto',
+                height: '100%'
+            });
+            $('<div></div>', {id:"nexGuiAttackStream"})
+                .css({
+                    'font-size':this.font_size,
+                    'line-height':'13px'
+                })
+                .appendTo('#tbl_2h3b');
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:crimson'>+aff&nbsp&nbsp&nbsp</span>",`<span>${aff.name.toProperCase()}</span>`], 'ms');

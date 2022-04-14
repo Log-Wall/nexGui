@@ -1,6 +1,6 @@
 'use strict'
 
-var nexGui = {
+const nexGui = {
     version: '0.8.6',
     character: {
         hp: 0,
@@ -627,6 +627,31 @@ var nexGui = {
     },
 
     colors: {
+        Color: class {
+            constructor(type = 'action', name, color = 'orange', text = name) {
+                this._type = type;
+                this._name = name;
+                this._color = color;
+                this._text = text;
+            }
+        
+            get type() { return this._type; }
+            get name() { return this._name; }
+            get color()  { return this._color; }
+            get text()   { return this._text; }
+            set color(arg) { this._color = arg; }
+        },
+
+        generateColors() {
+            let actions = [
+                new this.Color('action', 'eat', 'gold', 'Eat'),
+                new this.Color('action', 'smoke', 'orange', 'Smoke'),
+                new this.Color('action', 'salve', 'aquamarine', 'Salve'),
+                new this.Color('action', 'sip', 'HotPink', 'Sip'),
+                new this.Color('action', 'eat', 'gold', 'Eat'),
+            ]
+            return actions;
+        },
         gradient(percent, increments = 100, start = 0, end = 120) {
             //https://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage
             // 0 is red, 120 is green. Gradient from red to green.
@@ -639,6 +664,7 @@ var nexGui = {
           // Return a CSS HSL string
               return `hsl(${c}, 100%, 50%)`;
         },
+
         highlightNames(txt) {
             let names = Object.keys(nexGui.cdb.players);
             for(let i = 0; i < names.length; i++) {
@@ -659,6 +685,7 @@ var nexGui = {
             }
             return txt;
         },
+
         /* Experimental code. Appears to be orders of magnitude slower this way
         highlightNames(txt) {
             let players = Object.keys(nexGui.cdb.players);
@@ -723,6 +750,7 @@ var nexGui = {
             frostwave:'orange',
             dragonchill:'orange',
             ague:'orange',
+            glaciate: 'orange',
             tailsmash:'orange',
             override:'orange',
             garrote:'orange',
@@ -740,32 +768,33 @@ var nexGui = {
             corrode: 'orange',
         },
         actions: {
-            eat: {color: 'gold', text:'Eat'},
-            smoke: {color: 'orange', text:'Smoke'},
-            salve: {color: 'aquamarine', text:'Salve'},
-            sip: {color: 'HotPink', text:'Sip'},
-            focus: {color: 'BlueViolet', text: 'Focus'},
-            tattoo: {color: 'cornflowerBlue', text:'Tattoo'},
+            eat: {name: 'eat', color: 'gold', text:'Eat'},
+            smoke: {name: 'smoke', color: 'orange', text:'Smoke'},
+            salve: {name: 'salve', color: 'aquamarine', text:'Salve'},
+            sip: {name: 'sip', color: 'HotPink', text:'Sip'},
+            focus: {name: 'focus', color: 'BlueViolet', text: 'Focus'},
+            tattoo: {name: 'tattoo', color: 'cornflowerBlue', text:'Tattoo'},
 
-            attack: {color: 'tomato', text: "\u00AB Attack \u00BB"},
-            stun: {color: 'red', text: "\u00AB Stun \u00BB"},
-            prone: {color: 'red', text: "\u00AB Prone \u00BB"},
-            entangled: {color: 'red', text: "\u00AB Entangled \u00BB"},
-            transfixed: {color: 'red', text: "\u00AB Transfixed \u00BB"},
-            blackout: {color: 'red', text: "\u00AB Blackout \u00BB"},
-            stupidity: {color: 'red', text: "\u00AB Stupidity \u00BB"},
-            loki: {color: 'red', text: "\u00AB Loki \u00BB"},
-            burning: {color: 'red', text: "\u00AB Burning \u00BB"},
-            dizziness: {color: 'red', text: "\u00AB Dizziness \u00BB"},
-            epilepsy: {color: 'red', text: "\u00AB Epilepsy \u00BB"},
-            unblind: {color: 'red', text: "\u00AB Unblind \u00BB"},
-            brokenleg: {color: 'red', text: "\u00AB Broken Leg \u00BB"},
-            brokenarm: {color: 'red', text: "\u00AB Broken Arm \u00BB"},
+            attack: {name: 'attack', color: 'tomato', text: "\u00AB Attack \u00BB"},
+            stun: {name: 'stun', color: 'red', text: "\u00AB Stun \u00BB"},
+            prone: {name: 'prone', color: 'red', text: "\u00AB Prone \u00BB"},
+            entangled: {name: 'entangled', color: 'red', text: "\u00AB Entangled \u00BB"},
+            transfixed: {name: 'transfixed', color: 'red', text: "\u00AB Transfixed \u00BB"},
+            webbed: {name: 'webbed', color: 'red', text: "\u00AB Webbed \u00BB"},
+            blackout: {name: 'blackout', color: 'red', text: "\u00AB Blackout \u00BB"},
+            stupidity: {name: 'stupidity', color: 'red', text: "\u00AB Stupidity \u00BB"},
+            loki: {name: 'loki', color: 'red', text: "\u00AB Loki \u00BB"},
+            burning: {name: 'burning', color: 'red', text: "\u00AB Burning \u00BB"},
+            dizziness: {name: 'dizziness', color: 'red', text: "\u00AB Dizziness \u00BB"},
+            epilepsy: {name: 'epilepsy', color: 'red', text: "\u00AB Epilepsy \u00BB"},
+            unblind: {name: 'unblind', color: 'red', text: "\u00AB Unblind \u00BB"},
+            brokenleg: {name: 'brokenleg', color: 'red', text: "\u00AB Broken Leg \u00BB"},
+            brokenarm: {name: 'brokenarm', color: 'red', text: "\u00AB Broken Arm \u00BB"},
         },
         subjects: {
-            self: {color: 'lightpink', text: 'Self'},
-            shield: {color: 'cyan', text:'((Shield))'},
-            tree: {color: 'lawngreen', text:'Tree'}
+            self: {name: 'self', color: 'lightpink', text: 'Self'},
+            shield: {name: 'shield', color: 'cyan', text:'((Shield))'},
+            tree: {name: 'tree', color: 'lawngreen', text:'Tree'}
         }
         
     },
@@ -1191,7 +1220,7 @@ var nexGui = {
                 id: 'sessionGold',
                 name: 'Total Gold', 
                 value: () => {
-                    client.get_variable('nexGui').stats;54
+                    //client.get_variable('nexGui').stats;
                     return (GMCP.Status.gold - nexGui.stats.sessionGold).toLocaleString()
                 }
             },
@@ -1303,7 +1332,7 @@ var nexGui = {
     },
 
     msg: {
-        brief: false,
+        brief: true,
         crits: [
         ['a CRITICAL', '2x'],
         ['CRUSHING', '4x'],
@@ -1395,7 +1424,7 @@ var nexGui = {
 
             if(who.toLowerCase() == 'self' && nexGui.msg.brief == true) {
                 this.attackMsgBrief(what, subject);
-                return;
+                //return;
             }
 
             let tab = $("<div></div>", {class: "mono"}).css({
@@ -1498,7 +1527,7 @@ var nexGui = {
     },
 
     pvp: {
-        location: '#tbl_2h3a',
+        location: '#tbl_2h3c',
         font_size: '11px',
         layout() {  
             // Split the pane into two halves.
@@ -1887,7 +1916,7 @@ var nexGui = {
         location: '#tbl_2h4a',
         font_size: '11px',
         lastEntry: false,
-        interval: 1000,
+        interval: 5000,
         _timer: {},
         _start() {
             console.log(`nexGui.feed._start() called. Timer now running at ${this.interval/1000} second interval`);
@@ -1914,10 +1943,15 @@ var nexGui = {
                 }
                 nexGui.feed.add(data);
             });
-
+            /* I originally thought I could use something like this to increase the
+               efficiency of the inline name highlighting, but limiting the regex
+               check to only names that were online. This would obviously then stop 
+               from highlighting names that were used in conversation but not online
+               "That guy Khaseem is so awesome."
             $.getJSON( 'https://api.achaea.com/characters.json', function(data) {
                 nexGui.feed.characters = data;
             });
+            */
         },
         add(data) {
             let index = data.findIndex(e=>e.id == this.lastEntry.id);
@@ -1937,7 +1971,7 @@ var nexGui = {
     },
 
     stream: {
-        location: '#tbl_2h3c',
+        location: '#tbl_2h3b',
         font_size: '11px',
         msgLimit: 100,
         write(location, msg, timeFormat = 'noms') {
@@ -1976,8 +2010,8 @@ var nexGui = {
                     'line-height':'13px'
                 })
                 .appendTo(this.location);
-            $('#tbl_2h3b').empty();
-                $('#tbl_2h3b').css({
+            $('#tbl_2h3a').empty();
+                $('#tbl_2h3a').css({
                     overflow: 'auto',
                     height: '100%'
                 });
@@ -2246,9 +2280,6 @@ var nexGui = {
         load() {            
             client.reflex_enable(reflex_find_by_name("group", "nexGui.colors", false, false, "Nexgui"));
             client.reflex_enable(reflex_find_by_name("group", "nexGui.stream", false, false, "Nexgui"));
-            client.run_function('nexGui.colors', {}, 'Nexgui');
-            client.run_function('nexGui.occultist', {}, 'Nexgui');
-            client.run_function('nexGui.dragon', {}, 'Nexgui');
 
             nexGui.startUp();
         },

@@ -456,7 +456,7 @@ const nexGui = {
         let nexGuiStreamTarget = function(arg) {
             if (!args) { return; }
             nexGui.stream.write('#nexGuiAttackStream', [
-            `<span class='' style="color:red">[Target]</span>`,
+            `<span class='' style="color:red">[ Target ]</span>`,
             `<span>${args ? args : 'Cleared'}</span>`
             ]);
         }
@@ -1521,7 +1521,7 @@ const nexGui = {
                 $('<span></span>', {style:"color:white"}).html(`:${this.checkCrit()}`).appendTo(cellWhat);
 
                 // if the target matches our target we should know how much damage the attack did and the health of the target.
-                if (subject.toLowerCase() == GMCP.TargetText) {                 
+                if (subject.toLowerCase() == GMCP.TargetText.toLowerCase()) {                 
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);

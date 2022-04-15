@@ -449,9 +449,19 @@ const nexGui = {
         nexSys.eventStream.removeListener('IRE.Misc.Achievement', 'nexGuiMiscAchievement');
         nexSys.eventStream.removeListener('Comm.Channel.Players', 'channelPlayersMongo');
         nexSys.eventStream.removeListener('Char.Vitals', 'nexGuiClassBalance');
-        nexSys.eventStream.removeListener('IRE.Target.Set', 'nexGuiTarget')
+        nexSys.eventStream.removeListener('IRE.Target.Info', 'nexGuiTarget');
+        nexSys.eventStream.removeListener('IRE.Target.Set', 'nexGuiStreamTarget');
 
         // Populate nexGUI GMCP events
+        let nexGuiStreamTarget = function(arg) {
+            if (!args) { return; }
+            nexGui.stream.write('#nexGuiAttackStream', [
+            `<span class='' style="color:red">[Target]</span>`,
+            `<span>${args ? args : 'Cleared'}</span>`
+            ]);
+        }
+        nexSys.eventStream.registerEvent('IRE.Target.Set', nexGuiStreamTarget);
+
         let nexGuiTarget = function(args) {
             if (!args.target) {return;}
 
@@ -1515,7 +1525,7 @@ const nexGui = {
                     // Add the subject portion of the line.
                     let hpperc = parseInt(GMCP.TargetHP.slice(0,GMCP.TargetHP.length-1,1));                   
                     $('<span></span>', {style:"color:white"}).html('(').appendTo(cellSubject);
-                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).html(`${GMCP.TargetHP?GMCP.TargetHP:' '}`).appendTo(cellSubject);
+                    $('<span></span>', {style:`color:${nexGui.colors.gradient(hpperc)}`}).html(`${GMCP.TargetHP ? GMCP.TargetHP : ' '}`).appendTo(cellSubject);
                     $('<span></span>', {style:"color:white"}).html(')').appendTo(cellSubject);                   
                 } else {
                     cellSubject.html('');
@@ -1971,7 +1981,8 @@ const nexGui = {
     },
 
     stream: {
-        location: '#tbl_2h3b',
+        streamLocation: '#tbl_2h3b',
+        attackLocation: '#tbl_2h3a',
         font_size: '11px',
         msgLimit: 100,
         write(location, msg, timeFormat = 'noms') {
@@ -1999,8 +2010,8 @@ const nexGui = {
             $(location).parent().scrollTop($(location)[0].scrollHeight)
         },
         layout() {
-            $(this.location).empty();
-            $(this.location).css({
+            $(this.streamLocation).empty();
+            $(this.streamLocation).css({
                 overflow: 'auto',
                 height: '100%'
             });
@@ -2009,9 +2020,9 @@ const nexGui = {
                     'font-size':this.font_size,
                     'line-height':'13px'
                 })
-                .appendTo(this.location);
-            $('#tbl_2h3a').empty();
-            $('#tbl_2h3a').css({
+                .appendTo(this.streamLocation);
+            $(this.attackLocation).empty();
+            $(this.attackLocation).css({
                 overflow: 'auto',
                 height: '100%'
             });
@@ -2020,7 +2031,7 @@ const nexGui = {
                     'font-size':this.font_size,
                     'line-height':'13px'
                 })
-                .appendTo('#tbl_2h3b');
+                .appendTo(this.attackLocation);
             let nexGuiStreamAddAff = function nexGuiStreamAddAff(aff) {
                 if (['blindness', 'deafness', 'insomnia'].indexOf(aff.name) != -1) {return;}
                 nexGui.stream.write('#nexGuiStream', ["<span class='mono' style='color:crimson'>+aff&nbsp&nbsp&nbsp</span>",`<span>${aff.name.toProperCase()}</span>`], 'ms');

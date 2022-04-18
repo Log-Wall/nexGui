@@ -1,7 +1,7 @@
 'use strict'
 
 const nexGui = {
-    version: '0.8.6',
+    version: '0.9.0',
     character: {
         hp: 0,
         hpDiff: 0,
@@ -454,10 +454,10 @@ const nexGui = {
 
         // Populate nexGUI GMCP events
         let nexGuiStreamTarget = function(arg) {
-            if (!args) { return; }
+            if (!arg) { return; }
             nexGui.stream.write('#nexGuiAttackStream', [
             `<span class='' style="color:red">[ Target ]</span>`,
-            `<span>${args ? args : 'Cleared'}</span>`
+            `<span>${arg ? arg : 'Cleared'}</span>`
             ]);
         }
         nexSys.eventStream.registerEvent('IRE.Target.Set', nexGuiStreamTarget);
@@ -1342,7 +1342,7 @@ const nexGui = {
     },
 
     msg: {
-        brief: true,
+        brief: false,
         crits: [
         ['a CRITICAL', '2x'],
         ['CRUSHING', '4x'],
@@ -1432,10 +1432,11 @@ const nexGui = {
         },
         attackMsg(who, what, subject) {
 
-            if(who.toLowerCase() == 'self' && nexGui.msg.brief == true) {
+            if(who.toLowerCase() == 'self') {
                 this.attackMsgBrief(what, subject);
-                //return;
             }
+
+            if (nexGui.msg.brief == true) { return; }
 
             let tab = $("<div></div>", {class: "mono"}).css({
                 display:'inline-table',

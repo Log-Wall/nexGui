@@ -2178,8 +2178,10 @@ const nexGui = {
                     data.city = this.players[data.name].city;
                 }
                 await nexGui.mongo.db.updateOne({'name':data.name}, data);
+                console.log(`nexGui.cdb.addCharacterToMongo(${data.name}) updateOne.`)
             } else {
                 await nexGui.mongo.db.insertOne(data);
+                console.log(`nexGui.cdb.addCharacterToMongo(${data.name}) insertOne.`)
             }
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');

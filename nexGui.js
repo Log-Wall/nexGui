@@ -2159,11 +2159,15 @@ const nexGui = {
             }
         },
         async getCharacterServerList() {
-            $.getJSON( "https://api.achaea.com/characters.json", async function( data ) {
-                for (let i = 0; i < data.characters.length; i++) {
-                    await nexGui.cdb.getCharacterByURI(data.characters[i].uri, data.name);
-                }
-            });
+            let result = await fetch("https://api.achaea.com/characters.json", {cache: 'no-store'});
+            if(!result.ok) { 
+                console.log('getCharacterServerList() error');
+                return; 
+            }
+            let data = await result.json();
+            for (let i = 0; i < data.characters.length; i++) {
+                await nexGui.cdb.getCharacterByURI(data.characters[i].uri, data.name);
+            }
         },
         async addCharacterToMongo(data) {
             data.time = client.Date();
@@ -2186,25 +2190,33 @@ const nexGui = {
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
         },
+
         async getCharacterByURI(uri, name) {
-            $.getJSON( uri, async function( data ) {
-                await nexGui.cdb.addCharacterToMongo(data);
-            })
-            .fail(async function() {
-                await nexGui.mongo.db.deleteOne({'name':name})
-                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
-            });
+            let result = await fetch(uri, {cache: 'no-store'});
+            
+            if (!result.ok) {
+                await nexGui.mongo.db.deleteOne({'name':name});
+                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`);
+                return;
+            }
+
+            let data = await result.json();
+            await nexGui.cdb.addCharacterToMongo(data);
         },
         
         async getCharacterByName(name) {
-            $.getJSON( "https://api.achaea.com/characters/" + name.toLowerCase() + ".json", async function ( data ) {
-                await nexGui.cdb.addCharacterToMongo(data);
-            })
-            .fail(async function() {
-                await nexGui.mongo.db.deleteOne({'name':name})
-                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`)
-            });
+            let result = await fetch("https://api.achaea.com/characters/" + name.toLowerCase() + ".json", {cache: 'no-store'});
+            
+            if (!result.ok) {
+                await nexGui.mongo.db.deleteOne({'name':name});
+                console.log(`nexGui.cdb.getCharacterByName(${name}) failed. Entry deleted from database.`);
+                return;
+            }
+
+            let data = await result.json();
+            await nexGui.cdb.addCharacterToMongo(data);
         },
+
         updateCity(name, city) {
             city = city.toLowerCase();
             if (!nexGui.colors.city[city]) {nexPrint('Incorrect city string in update');return;}
@@ -2219,6 +2231,7 @@ const nexGui = {
                 nexPrint(`Database updated ${name} to City ${city}`);
             }
         },
+
         _purgeRemovedPlayers() {
             var purgeList = Object.keys(this.players);
             var purgeTimer = setInterval(()=> {
@@ -2245,8 +2258,7 @@ const nexGui = {
             this.user = await this.app.logIn(this.credentials)
             this.user.id === this.app.currentUser.id;
             this.mongodb = this.app.currentUser.mongoClient("mongodb-atlas");
-            this.db = this.mongodb.db('nexCDB').collection('characters')
-            //this.entries = await this.db.find({}, {projection: {area:1, attrib:1, icon:1, id:1, name:1, room:1}});
+            this.db = this.mongodb.db('nexCDB').collection('characters');
             let entries = await this.db.find({}, {projection: {name:1, fullname:1, city:1, house:1, level:1, class:1, mob_kills:1, player_kills:1, xp_rank:1, explorer_rank:1, time:1, _id:0}});
             entries.forEach(e=>{
                 nexGui.cdb.players[e.name]=e;
@@ -2261,24 +2273,6 @@ const nexGui = {
         },
         ignoreList: [
             /a dervish/,
-            /a sharp-toothed gremlin/,
-            /a chaos orb/,
-            /a bloodleech/,
-            /a minion of chaos/,
-            /a worm/,
-            /a green slime/,
-            /a soulmaster/,
-            /a humbug/,
-            /a chimera/,
-            /a bubonis/,
-            /a chaos storm/,
-            /a chaos hound/,
-            /a withered crone/,
-            /a pathfinder/,
-            /a doppleganger/,
-            /an ethereal firelord/,
-            /a simpering sycophant/,
-            /an eldritch abomination/
         ]
     },
 

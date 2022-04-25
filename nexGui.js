@@ -2176,17 +2176,13 @@ const nexGui = {
             data.player_kills = parseInt(data.player_kills);
             data.xp_rank = parseInt(data.xp_rank);
             data.explorer_rank = parseInt(data.explorer_rank);
-
-            if (this.players[data.name]) {
-                if (data.city == "(hidden)" || data.city == "(none)") {
-                    data.city = this.players[data.name].city;
-                }
-                await nexGui.mongo.db.updateOne({'name':data.name}, data);
-                console.log(`nexGui.cdb.addCharacterToMongo(${data.name}) updateOne.`)
-            } else {
-                await nexGui.mongo.db.insertOne(data);
-                console.log(`nexGui.cdb.addCharacterToMongo(${data.name}) insertOne.`)
+            if (data.city == "(hidden)") {
+                data.city = this.players[data.name].city;
             }
+
+            await nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});
+            console.log(`nexGui.cdb.addCharacterToMongo(${data.name}) upsert.`)
+
             nexGui.cdb.players[data.name] = data;
             nexGui.cdb.players[data.name].regex = new RegExp('\\b'+data.name+'\\b', 'g');
         },
@@ -2232,14 +2228,10 @@ const nexGui = {
             }
         },
 
-        _purgeRemovedPlayers() {
-            var purgeList = Object.keys(this.players);
-            var purgeTimer = setInterval(()=> {
-                if(purgeList.length == 0) {console.log('No names left, clearing interval');clearInterval(purgeTimer)}
-                let name = purgeList.pop();
-                console.log(name);
-                nexGui.cdb.getCharacterByName(name)
-            }, 1000)
+        async _purgeRemovedPlayers() {
+            Object.keys(this.players).forEach(async function(name) {
+                await this.getCharacterByName(name);
+            })
         }
     },
 
@@ -2273,6 +2265,26 @@ const nexGui = {
         },
         ignoreList: [
             /a dervish/,
+            /a sharp-toothed gremlin/,
+            /a chaos orb/,
+            /a bloodleech/,
+            /a minion of chaos/,
+            /a worm/,
+            /a green slime/,
+            /a soulmaster/,
+            /a humbug/,
+            /a chimera/,
+            /a bubonis/,
+            /a chaos storm/,
+            /a chaos hound/,
+            /a withered crone/,
+            /a pathfinder/,
+            /a doppleganger/,
+            /an ethereal firelord/,
+            /a simpering sycophant/,
+            /a water weird/,
+            /an eldritch abomination/,
+            /Khaseem/
         ]
     },
 

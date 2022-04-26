@@ -2178,6 +2178,8 @@ const nexGui = {
             data.explorer_rank = parseInt(data.explorer_rank);
             if (data.city == "(hidden)") {
                 data.city = this.players[data.name].city;
+            } else if (data.city == '') {
+                data.city = 'garden';
             }
 
             await nexGui.mongo.db.updateOne({'name':data.name}, data, {upsert: true});

@@ -2408,7 +2408,7 @@ fetch('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexGui.nxs', {cache: "no-stor
         response.json()
             .then(data => {
                 console.log(data);
-                //packages[packages.findIndex(e=>e.name=='nexgui')] = data;
+                packages[packages.findIndex(e=>e.name=='nexgui')] = data;
             })
     });
 

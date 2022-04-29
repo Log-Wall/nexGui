@@ -2410,7 +2410,7 @@ fetch('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexGui.nxs', {cache: "no-stor
                 console.log(data);
                 packages[packages.findIndex(e=>e.name=='nexgui')] = data;
             })
-    });
+    })
 
 let dependencies = ['jsHelpers', 'eventStream', 'gmcpHandler', 'customTabs']
 dependencies.forEach(e=> run_function(e, {}, 'Nexgui'))               

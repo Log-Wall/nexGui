@@ -2170,7 +2170,7 @@ const nexGui = {
             }
         },
         async addCharacterToMongo(data) {
-            data.time = client.Date();
+            data.time = new Date();
             data.user = GMCP.Status.name;
             data.level = parseInt(data.level);
             data.player_kills = parseInt(data.player_kills);

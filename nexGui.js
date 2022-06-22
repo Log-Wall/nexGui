@@ -2403,19 +2403,12 @@ $.getScript("https://unpkg.com/realm-web/dist/bundle.iife.js", ()=>{console.log(
 $.getScript('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexusRewrites.js');
 $.getScript('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexGui.themes.js');
 
-fetch('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexGui.nxs', {cache: "no-store"})
-    .then(response => {
-        response.json()
-            .then(data => {
-                console.log(data);
-                packages[packages.findIndex(e=>e.name=='nexgui')] = data;
-            })
-    })
+packages[packages.findIndex(e => e.name === 'nexgui')]
+    .items.find(e => e.name === 'Dependencies')
+    .items.forEach(e => run_function(e, {}, 'Nexgui'))
 
-let dependencies = ['jsHelpers', 'eventStream', 'gmcpHandler', 'customTabs']
-dependencies.forEach(e=> run_function(e, {}, 'Nexgui'))               
-
-let customizations = ['colors', 'occultist', 'magi', 'bluedragon', 'greendragon']
-customizations.forEach(e=> run_function(`nexGui.${e}`, {}, 'Nexgui'))
+packages[packages.findIndex(e => e.name === 'nexgui')]
+    .items.find(e => e.name === 'Customization Modules')
+    .items.forEach(e => run_function(e, {}, 'Nexgui'))
 
 gmcp_save_system(false)

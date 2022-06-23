@@ -2405,10 +2405,10 @@ $.getScript('https://cdn.jsdelivr.net/gh/Log-Wall/nexGui/nexGui.themes.js');
 
 packages[packages.findIndex(e => e.name === 'nexgui')]
     .items.find(e => e.name === 'Dependencies')
-    .items.forEach(e => run_function(e, {}, 'Nexgui'))
+    .items.forEach(e => run_function(e.name, {}, 'Nexgui'))
 
 packages[packages.findIndex(e => e.name === 'nexgui')]
     .items.find(e => e.name === 'Customization Modules')
-    .items.forEach(e => run_function(e, {}, 'Nexgui'))
+    .items.forEach(e => run_function(e.name, {}, 'Nexgui'))
 
 gmcp_save_system(false)

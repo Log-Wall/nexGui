@@ -18,7 +18,7 @@ let nexGui = {
       //return [d, pad(h), pad(m)].join(':');
     },
     startUp() {
-        this.display.notice(`Nexmap is currently down.`);
+        this.display.notice(`NexGui is currently down.`);
         this.display.notice(`Service will be restored in ${this.dhm(this.endTime - Date.now())}.`);
         this.display.notice(`Please contact Tlalaiad on Discord with any questions.`);
     },
